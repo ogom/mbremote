@@ -21,7 +21,7 @@ npm install --global mbremote
 mbremote setup
 ```
 
-firmwareはカレントディレクトリの `firmware/` に保存されます。
+firmwareはカレントディレクトリの `firmware/` に保存され、空の `config/setting.json` も作成されます。既存の設定ファイルは上書きされません。
 
 ## 使い方
 
@@ -112,7 +112,7 @@ examples/
 
 | コマンド                     | 説明                                                             |
 | ---------------------------- | ---------------------------------------------------------------- |
-| `mbremote setup`             | カレントプロジェクト用に公式V1/V2 firmwareをダウンロードします。 |
+| `mbremote setup`             | 設定ファイルを作成し、公式V1/V2 firmwareをダウンロードします。   |
 | `mbremote build [FILE\|DIR]` | `build/microbit.hex` を生成します。                              |
 | `mbremote flash [HEX]`       | DAPLink USBまたはmass storageでHEXを書き込みます。               |
 | `mbremote run [FILE\|DIR]`   | ビルド、書き込み、シリアルモニター起動を行います。               |

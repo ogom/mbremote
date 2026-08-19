@@ -73,7 +73,7 @@ Run commands from the repository root.
 Run this before the first flash and after changing `ml_model.py` or `rgb_led.py`:
 
 ```sh
-npm run firmware:magic-circle
+npm run build:firmware:magic-circle
 ```
 
 The model from `data-samples.json` and `rgb_led.py` are frozen into the custom firmware, so they do not consume the 20 KB file system.

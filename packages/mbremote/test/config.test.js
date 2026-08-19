@@ -4,13 +4,40 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 
-import { loadConfigOptions } from "../src/config.js";
+import { loadConfigOptions, setupConfig } from "../src/config.js";
 
 async function writeConfig(cwd, content) {
   const directory = path.join(cwd, "config");
   await fs.mkdir(directory);
   await fs.writeFile(path.join(directory, "setting.json"), content);
 }
+
+test("creates an empty project configuration", async () => {
+  const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "mbremote-test-"));
+  const result = await setupConfig({ cwd, log() {} });
+
+  assert.deepEqual(result, {
+    path: path.join(cwd, "config", "setting.json"),
+    created: true,
+  });
+  assert.equal(
+    await fs.readFile(path.join(cwd, "config", "setting.json"), "utf8"),
+    "{}\n"
+  );
+});
+
+test("does not overwrite an existing project configuration", async () => {
+  const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "mbremote-test-"));
+  await writeConfig(cwd, '{"board":"v2"}\n');
+
+  const result = await setupConfig({ cwd, log() {} });
+
+  assert.equal(result.created, false);
+  assert.equal(
+    await fs.readFile(path.join(cwd, "config", "setting.json"), "utf8"),
+    '{"board":"v2"}\n'
+  );
+});
 
 test("loads setting.json options used by the command", async () => {
   const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "mbremote-test-"));

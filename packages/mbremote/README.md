@@ -21,7 +21,8 @@ In each project directory, download the official V1 and V2 firmware before build
 mbremote setup
 ```
 
-The firmware is saved to `firmware/` in the current directory.
+The firmware is saved to `firmware/` in the current directory. An empty
+`config/setting.json` is also created without overwriting an existing file.
 
 ## Usage
 
@@ -112,7 +113,7 @@ Pass `--config FILE` to use another file; command-line options take precedence.
 
 | Command                      | Description                                                   |
 | ---------------------------- | ------------------------------------------------------------- |
-| `mbremote setup`             | Download official V1 and V2 firmware for the current project. |
+| `mbremote setup`             | Create the config file and download official V1/V2 firmware.  |
 | `mbremote build [FILE\|DIR]` | Create `build/microbit.hex`.                                  |
 | `mbremote flash [HEX]`       | Flash a HEX using DAPLink USB or mass storage.                |
 | `mbremote run [FILE\|DIR]`   | Build, flash, and open the serial monitor.                    |

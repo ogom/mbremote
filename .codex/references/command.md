@@ -31,6 +31,11 @@ mbremote setup
 mbremote --version
 ```
 
+Both `npm run setup` in the CLI source repository and `mbremote setup` in an
+npm project download the official firmware and create an empty
+`config/setting.json` when it is missing. They do not overwrite an existing
+configuration file.
+
 ## Build
 
 ```sh

@@ -45,6 +45,27 @@ const COMMAND_OPTIONS = new Map([
   ["ports", new Set()],
 ]);
 
+export async function setupConfig({
+  cwd = process.cwd(),
+  filename = "config/setting.json",
+  log = console.log,
+} = {}) {
+  const configPath = path.resolve(cwd, filename);
+  await fs.mkdir(path.dirname(configPath), { recursive: true });
+  try {
+    await fs.writeFile(configPath, "{}\n", {
+      encoding: "utf8",
+      flag: "wx",
+    });
+    log(`installed: ${configPath}`);
+    return { path: configPath, created: true };
+  } catch (error) {
+    if (error.code !== "EEXIST") throw error;
+    log(`exists: ${configPath}`);
+    return { path: configPath, created: false };
+  }
+}
+
 export async function loadConfigOptions(
   command,
   {

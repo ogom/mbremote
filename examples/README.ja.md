@@ -48,7 +48,7 @@ mbremote build examples/begin --shared examples/shared
 `magic-circle` は、動作認識モデルと RGB LED モジュールを凍結した V2 用の custom firmware を必要とします。初回の書き込み時、または firmware を変更したときは、firmware を生成して full flash します。
 
 ```sh
-npm run firmware:magic-circle
+npm run build:firmware:magic-circle
 mbremote run examples/magic-circle/main.py --all --no-shared --board v2 --firmware firmware/microbit-micropython-v2-magic-circle.hex --force
 ```
 

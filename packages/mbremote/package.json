@@ -1,6 +1,6 @@
 {
   "name": "mbremote",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Command-line tools for building and flashing BBC micro:bit MicroPython projects",
   "author": "ogom",
   "repository": {

@@ -22,7 +22,8 @@ npm install --global mbremote
 mbremote setup
 ```
 
-firmware はプロジェクトの `firmware/` に保存されます。サンプルを使う場合は、このリポジトリをクローンして `examples/` を利用してください。
+firmware はプロジェクトの `firmware/` に保存され、空の `config/setting.json` も作成されます。
+既存の設定ファイルは上書きされません。サンプルを使う場合は、このリポジトリをクローンして `examples/` を利用してください。
 
 ## 使い方
 
@@ -77,7 +78,7 @@ mbremote run examples/magic-circle/main.py --board v2 --firmware firmware/custom
 `examples/magic-circle` 用の firmware は、次のコマンドで生成します。`ml_model.py` または `rgb_led.py` を変更した場合も再生成してください。
 
 ```sh
-npm run firmware:magic-circle
+npm run build:firmware:magic-circle
 mbremote run examples/magic-circle/main.py --all --no-shared --board v2 --firmware firmware/microbit-micropython-v2-magic-circle.hex --force
 ```
 
@@ -120,7 +121,7 @@ examples/
 
 | コマンド                     | 説明                                                             |
 | ---------------------------- | ---------------------------------------------------------------- |
-| `mbremote setup`             | カレントプロジェクト用に公式 V1/V2 firmware をダウンロードします。 |
+| `mbremote setup`             | 設定ファイルを作成し、公式 V1/V2 firmware をダウンロードします。   |
 | `mbremote build [FILE\|DIR]` | `build/microbit.hex` を生成します。                              |
 | `mbremote flash [HEX]`       | DAPLink USB または mass-storage で HEX を書き込みます。           |
 | `mbremote run [FILE\|DIR]`   | ビルド、書き込み、シリアルモニター起動を行います。               |

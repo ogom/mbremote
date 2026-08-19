@@ -9,7 +9,7 @@
 - [Flash multiple devices](#flash-multiple-devices)
 - [Git considerations](#git-considerations)
 
-`mbremote` automatically reads `config/setting.json` from the working directory. If the file does not exist, CLI defaults are used. Explicit command-line options take precedence over the same settings in the file.
+`mbremote` automatically reads `config/setting.json` from the working directory. `mbremote setup` creates this file as an empty JSON object when it is missing and preserves an existing file. If the file does not exist because setup has not been run, CLI defaults are used. Explicit command-line options take precedence over the same settings in the file.
 
 ## Basic configuration
 

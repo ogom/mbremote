@@ -73,7 +73,7 @@ CreateAIの動作認識で魔法陣を構築する、1人練習と2人対戦の�
 初回と`ml_model.py`または`rgb_led.py`を変更したときに実行します。
 
 ```sh
-npm run firmware:magic-circle
+npm run build:firmware:magic-circle
 ```
 
 `data-samples.json`の学習モデルと`rgb_led.py`はカスタムfirmwareに組み込まれるため、20KBのファイル領域を消費しません。

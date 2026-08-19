@@ -3,7 +3,7 @@ import { createRequire } from "node:module";
 
 import { helpText, parseArgs } from "./args.js";
 import { buildHex } from "./builder.js";
-import { loadConfigOptions } from "./config.js";
+import { loadConfigOptions, setupConfig } from "./config.js";
 import { flashHex, flashHexAll } from "./device.js";
 import { flashHexDirect, flashHexDirectAll } from "./direct-flash.js";
 import { setupFirmware } from "./firmware.js";
@@ -74,6 +74,7 @@ export async function main(argv, { cwd = process.cwd() } = {}) {
       return;
     }
     case "setup":
+      await setupConfig({ cwd });
       await setupFirmware({ cwd });
       return;
     case "repl": {

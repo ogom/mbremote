@@ -48,7 +48,7 @@ mbremote build examples/begin --shared examples/shared
 `magic-circle` requires a custom V2 firmware with the motion model and RGB LED module frozen into it. Generate the firmware, then perform a full flash on first installation or after changing the firmware.
 
 ```sh
-npm run firmware:magic-circle
+npm run build:firmware:magic-circle
 mbremote run examples/magic-circle/main.py --all --no-shared --board v2 --firmware firmware/microbit-micropython-v2-magic-circle.hex --force
 ```
 

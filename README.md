@@ -22,7 +22,8 @@ Before building, download official V1 and V2 firmware from the MicroPython proje
 mbremote setup
 ```
 
-Firmware is stored in the project's `firmware/` directory. To use the samples, clone this repository and use `examples/`.
+Firmware is stored in the project's `firmware/` directory. An empty `config/setting.json` is also created without overwriting an existing file.
+To use the samples, clone this repository and use `examples/`.
 
 ## Usage
 
@@ -77,7 +78,7 @@ mbremote run examples/magic-circle/main.py --board v2 --firmware firmware/custom
 Generate the firmware for `examples/magic-circle` with the following command. Regenerate it after changing `ml_model.py` or `rgb_led.py`.
 
 ```sh
-npm run firmware:magic-circle
+npm run build:firmware:magic-circle
 mbremote run examples/magic-circle/main.py --all --no-shared --board v2 --firmware firmware/microbit-micropython-v2-magic-circle.hex --force
 ```
 
@@ -120,7 +121,7 @@ Set `shared` to a shared-module directory, or to `false` to exclude shared modul
 
 | Command                      | Description                                                   |
 | ---------------------------- | ------------------------------------------------------------- |
-| `mbremote setup`             | Download official V1 and V2 firmware for the current project. |
+| `mbremote setup`             | Create the config file and download official V1/V2 firmware.  |
 | `mbremote build [FILE\|DIR]` | Create `build/microbit.hex`.                                  |
 | `mbremote flash [HEX]`       | Flash a HEX using DAPLink USB or mass storage.                |
 | `mbremote run [FILE\|DIR]`   | Build, flash, and open the serial monitor.                    |
