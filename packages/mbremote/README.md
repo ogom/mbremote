@@ -2,6 +2,8 @@
 
 [日本語](README.ja.md)
 
+[![npm version](https://img.shields.io/npm/v/mbremote.svg)](https://www.npmjs.com/package/mbremote)
+
 Command-line tools for building, flashing, and inspecting BBC micro:bit MicroPython projects.
 It uses the official micro:bit Python Editor V3 firmware, `@microbit/microbit-fs`, and `@microbit/microbit-connection`.
 

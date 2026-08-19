@@ -1,7 +1,17 @@
 {
   "name": "mbremote",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Command-line tools for building and flashing BBC micro:bit MicroPython projects",
+  "author": "ogom",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ogom/mbremote.git",
+    "directory": "packages/mbremote"
+  },
+  "bugs": {
+    "url": "https://github.com/ogom/mbremote/issues"
+  },
+  "homepage": "https://github.com/ogom/mbremote/tree/main/packages/mbremote#readme",
   "type": "module",
   "files": [
     "bin",

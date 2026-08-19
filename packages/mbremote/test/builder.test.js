@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
 import {
   buildHex,
@@ -10,6 +11,11 @@ import {
   resolveFirmware,
   resolveInput,
 } from "../src/builder.js";
+
+const repositoryFirmware = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../../firmware"
+);
 
 test("a single Python file is installed as main.py", async () => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), "mbremote-test-"));
@@ -153,7 +159,8 @@ test("rejects a shared module that collides with a project filename", async () =
 
 test("root V1 and V2 firmware resolves", async () => {
   const firmware = resolveFirmware();
-  assert.match(firmware.v1, /my_microbit\/firmware\//);
+  assert.equal(path.dirname(firmware.v1), repositoryFirmware);
+  assert.equal(path.dirname(firmware.v2), repositoryFirmware);
   assert.match(firmware.v1, /microbit-micropython-v1\.hex$/);
   assert.match(firmware.v2, /microbit-micropython-v2\.hex$/);
   await fs.access(firmware.v1);

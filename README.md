@@ -2,6 +2,8 @@
 
 [日本語](README.ja.md)
 
+[![npm version](https://img.shields.io/npm/v/mbremote.svg)](https://www.npmjs.com/package/mbremote)
+
 A development environment for building, flashing, and controlling BBC micro:bit MicroPython projects. It includes the `mbremote` CLI in `packages/mbremote` and sample programs for micro:bit.
 
 It uses official micro:bit Python Editor V3 firmware, `@microbit/microbit-fs`, and `@microbit/microbit-connection`. It creates Universal HEX files for V1 and V2 and flashes them through DAPLink USB or mass storage.

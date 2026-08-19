@@ -2,6 +2,8 @@
 
 [English](README.md)
 
+[![npm version](https://img.shields.io/npm/v/mbremote.svg)](https://www.npmjs.com/package/mbremote)
+
 BBC micro:bit 向けMicroPythonプロジェクトをビルド、書き込み、操作するためのコマンドラインツールです。
 公式 micro:bit Python Editor V3 のfirmware、`@microbit/microbit-fs`、`@microbit/microbit-connection` を使用します。
 

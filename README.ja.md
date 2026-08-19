@@ -2,6 +2,8 @@
 
 [English](README.md)
 
+[![npm version](https://img.shields.io/npm/v/mbremote.svg)](https://www.npmjs.com/package/mbremote)
+
 BBC micro:bit 向けの MicroPython プロジェクトをビルド、書き込み、操作するための開発環境です。`packages/mbremote` の `mbremote` CLI と、micro:bit 向けのサンプルプログラムを含みます。
 
 公式 micro:bit Python Editor V3 の firmware、`@microbit/microbit-fs`、`@microbit/microbit-connection` を使用します。V1/V2 両対応の Universal HEX を生成し、DAPLink USB または mass-storage 方式で書き込みます。
