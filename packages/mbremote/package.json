@@ -1,0 +1,40 @@
+{
+  "name": "mbremote",
+  "version": "0.1.0",
+  "description": "Command-line tools for building and flashing BBC micro:bit MicroPython projects",
+  "type": "module",
+  "files": [
+    "bin",
+    "src"
+  ],
+  "bin": {
+    "mbremote": "bin/mbremote.js"
+  },
+  "scripts": {
+    "mbremote": "node bin/mbremote.js",
+    "build": "node bin/mbremote.js build",
+    "flash": "node bin/mbremote.js flash",
+    "run": "node bin/mbremote.js run",
+    "test": "node --test test/*.test.js",
+    "prepublishOnly": "npm test"
+  },
+  "keywords": [
+    "microbit",
+    "micropython",
+    "daplink",
+    "cli"
+  ],
+  "dependencies": {
+    "@microbit/microbit-connection": "1.0.0",
+    "@microbit/microbit-fs": "0.10.0",
+    "serialport": "13.0.0",
+    "usb": "2.17.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}
