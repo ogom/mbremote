@@ -27,13 +27,13 @@ Build magic circles with CreateAI motion recognition in this rock-paper-scissors
 | B button | Confirm a hand in a battle, or begin magic-circle construction in solo practice |
 | A+B buttons | Reset the current practice or battle, then play again |
 | Touch the logo | Switch between solo practice and two-player battle |
-| `down` motion | Light the center and reset construction |
+| `down` motion | Light the center and start magic-circle construction |
 | `up` motion | Turn off the lights and reset construction |
 
 ### Rules
 
 - In solo practice, completing the selected magic circle displays 😀.
-- In a battle, both players select a hand before building their magic circles. 😀 means win, 😢 means loss, and horizontal lines mean draw.
+- In a battle, both players select a hand before building their magic circles. 😀 with an expanding green-and-gold animation means win, followed by one replay of the selected magic circle's completion animation. 😢 with a contracting red animation means loss, and horizontal lines with blue-and-white rings mean draw.
 - When one magic circle is completed, the game waits five seconds for the opponent. If the opponent does not finish within five seconds, the player who finished first wins.
 - If both players finish within five seconds, normal rock-paper-scissors rules determine the winner. Matching hands are a draw.
 - The result stays on screen; press A+B to play again.
@@ -43,18 +43,19 @@ Build magic circles with CreateAI motion recognition in this rock-paper-scissors
 
 `data-samples.json` contains 50 CreateAI-recorded acceleration samples for each of `pose`, `side`, `circle`, `up`, and `down`. The model classifies roughly one second of motion (about 50 samples at 20 ms intervals), so make each motion large and deliberate over about one second.
 
-1. `pose`: Hold the board vertically, swing it forward until horizontal, then stop.
-2. `side`: Hold it horizontally, swing from left to right, then stop.
-3. `circle`: Hold it horizontally, draw a right-to-left semicircle, then stop.
+1. `down`: Begin with the `down` motion to light the center.
+2. `pose`: Hold the board vertically, swing it forward until horizontal, then stop.
+3. `side`: Hold it horizontally, swing from left to right, then stop.
+4. `circle`: Hold it horizontally, draw a right-to-left semicircle, then stop.
 
 Wait for the display image to change before making the next motion. If a motion is not recognized, stop once and repeat the same large trajectory instead of making many small movements.
 
 | Selection | Magic circle | Construction order |
 | --- | --- | --- |
-| Rock | `Delphinium` | `pose` → `side` → `circle` |
-| Paper | `Gerbera` | `pose` → `side` → `circle` |
-| Scissors | `Clover` | `pose` → `side` → `circle` |
-| Ancient (SKULL, solo practice only) | `Ancient` | `pose` → `side` → `circle` → `side` → `circle` |
+| Rock | `Delphinium` | `down` → `pose` → `side` → `circle` |
+| Paper | `Gerbera` | `down` → `pose` → `side` → `circle` |
+| Scissors | `Clover` | `down` → `pose` → `side` → `circle` |
+| Ancient (SKULL, solo practice only) | `Ancient` | `down` → `pose` → `side` → `circle` → `side` → `circle` |
 
 ## Configuration
 

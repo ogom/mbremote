@@ -18,6 +18,9 @@ from rgb_led import (
     gerbera_fill_point,
     gerbera_fill_wipe,
     run_effect,
+    show_draw_effect,
+    show_lose_effect,
+    show_win_effect,
 )
 gc.collect()
 
@@ -28,9 +31,10 @@ RADIO_QUEUE_LENGTH = 8
 CAST_WAIT_MS = 5000
 RESEND_MIN_MS = 250
 RESEND_MAX_MS = 450
+RESET_RESEND_MS = 300
 DEBUG = True
-SIDE_MIN_X_STDDEV = 0.25
-SIDE_MIN_Y_STDDEV = 0.25
+SIDE_MIN_X_STDDEV = 0.20
+SIDE_MIN_Y_STDDEV = 0.20
 SIDE_MAX_Z_STDDEV = 0.45
 SIDE_MAX_Z_MEAN = -0.55
 
@@ -75,8 +79,8 @@ HANDS = (IMAGE_ROCK, IMAGE_PAPER, IMAGE_SCISSORS)
 PRACTICE_HANDS = HANDS + (Image.SKULL,)
 HAND_NAMES = ("rock", "paper", "scissors", "skull")
 MAGICS = (DELPHINIUM, GERBERA, CLOVER, ANCIENT)
-BATTLE_SEQUENCE = ("pose", "side", "circle")
-ANCIENT_SEQUENCE = ("pose", "side", "circle", "side", "circle")
+BATTLE_SEQUENCE = ("down", "pose", "side", "circle")
+ANCIENT_SEQUENCE = ("down", "pose", "side", "circle", "side", "circle")
 
 radio.config(
     group=RADIO_GROUP,
@@ -101,6 +105,9 @@ my_wait_until = 0
 opponent_wait_until = 0
 last_send_time = 0
 next_send_interval = 300
+reset_wait_round = None
+last_reset_send_time = 0
+handled_reset_round = 0
 round_started = 0
 spell_step = 0
 current_action = None
@@ -145,20 +152,38 @@ def send_cast():
     radio.send("C|{}|{}|{}".format(round_no, my_choice, my_time))
 
 
+def send_reset():
+    global last_reset_send_time
+    if reset_wait_round is not None:
+        radio.send("X|{}".format(reset_wait_round))
+        last_reset_send_time = running_time()
+
+
 def receive_message():
     global opponent_choice, opponent_time, opponent_wait_until
     global ready_acked, cast_acked
+    global reset_wait_round
     message = radio.receive()
     if message is None or practice_mode:
         return False
-    if message == "X":
-        debug("radio reset received")
-        reset_round()
-        return True
     try:
         parts = message.split("|")
         received_round = int(parts[1])
-        if parts[0] == "R" and len(parts) == 3:
+        if parts[0] == "X" and len(parts) == 2:
+            if received_round > handled_reset_round:
+                reset_round(received_round)
+                debug("radio reset received round={}".format(round_no))
+            radio.send("Z|{}".format(round_no))
+        elif parts[0] == "Z" and len(parts) == 2:
+            if received_round > round_no:
+                reset_round(received_round)
+            if (
+                reset_wait_round is not None
+                and received_round >= reset_wait_round
+            ):
+                reset_wait_round = None
+                debug("reset acknowledged round={}".format(round_no))
+        elif parts[0] == "R" and len(parts) == 3:
             choice = int(parts[2])
             if received_round == round_no and ROCK <= choice <= SCISSORS:
                 first_ready = opponent_choice is None
@@ -258,12 +283,7 @@ def incorrect_order():
 
 def handle_action(action):
     global spell_step
-    if action == "down":
-        debug("action=down build reset")
-        gerbera_fill_point()
-        spell_step = 0
-        display.show(Image.COW)
-    elif action == "up":
+    if action == "up":
         debug("action=up build reset")
         clear_all()
         spell_step = 0
@@ -281,7 +301,10 @@ def handle_action(action):
             incorrect_order()
             return
         debug("action={} step={}/{}".format(action, spell_step + 1, len(sequence)))
-        if action == "pose":
+        if action == "down":
+            gerbera_fill_point()
+            display.show(Image.COW)
+        elif action == "pose":
             gerbera_cross_vertical()
             display.show(Image.SWORD)
         elif action == "side":
@@ -298,6 +321,13 @@ def handle_action(action):
 def show_outcome(result):
     global state
     display.show(Image.HAPPY if result > 0 else Image.SAD if result < 0 else IMAGE_DRAW)
+    if result > 0:
+        show_win_effect()
+        run_effect(MAGICS[my_choice])
+    elif result < 0:
+        show_lose_effect()
+    else:
+        show_draw_effect()
     state = 4
     debug("result={}".format("win" if result > 0 else "lose" if result < 0 else "draw"))
 
@@ -327,13 +357,17 @@ def show_result():
     show_outcome(result)
 
 
-def reset_round():
+def reset_round(target_round=None):
     global state, round_no, my_choice, opponent_choice
     global ready_acked, cast_acked, my_time, opponent_time
     global my_wait_until, opponent_wait_until
     global last_send_time, next_send_interval
+    global handled_reset_round
     if not practice_mode:
-        round_no += 1
+        if target_round is None:
+            target_round = round_no + 1
+        round_no = max(round_no, target_round)
+        handled_reset_round = max(handled_reset_round, round_no)
     state = 0
     my_choice = ROCK
     opponent_choice = None
@@ -361,6 +395,12 @@ while True:
             break
     now = running_time()
 
+    if (
+        reset_wait_round is not None
+        and now - last_reset_send_time >= RESET_RESEND_MS
+    ):
+        send_reset()
+
     logo_touched = pin_logo.is_touched()
     if state == 0 and logo_touched and not logo_touching:
         practice_mode = not practice_mode
@@ -374,8 +414,11 @@ while True:
 
     if button_a.is_pressed() and button_b.is_pressed():
         if not practice_mode:
-            radio.send("X")
-        reset_round()
+            reset_wait_round = round_no + 1
+            reset_round(reset_wait_round)
+            send_reset()
+        else:
+            reset_round()
         while button_a.is_pressed() or button_b.is_pressed():
             sleep(20)
         button_a.was_pressed()

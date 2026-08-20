@@ -8,9 +8,9 @@ HIDDEN_SIZE = 16
 OUTPUT_SIZE = 5
 DEVICE_SAMPLES_LENGTH = 50
 
-# 動作は認識しやすく、静止姿勢のup/downは誤反応しにくい閾値にする。
-REQUIRED_CONFIDENCE = (0.65, 0.65, 0.55, 0.90, 0.90)
-MIN_GESTURE_MOTION = 0.25
+# 魔法陣の構築動作は認識しやすく、静止姿勢のup/downは誤反応しにくい閾値にする。
+REQUIRED_CONFIDENCE = (0.55, 0.60, 0.45, 0.95, 0.95)
+MIN_GESTURE_MOTION = 0.20
 
 # Dense層の重みをモデル構造ごとに分け、学習値をそのまま読める形で保持する。
 # INPUT_WEIGHTSはmax・mean・min・stddev・peaks・acceleration・zcr・rmsの順で、

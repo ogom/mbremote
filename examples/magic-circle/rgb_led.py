@@ -3,6 +3,8 @@ from microbit import pin16, sleep
 
 
 NUM_PIXELS = 241
+# 完成時の魔法陣演出は、すべて同じフレーム間隔で短縮する。
+EFFECT_FRAME_DELAY_MS = 10
 
 GERBERA = 0
 DELPHINIUM = 1
@@ -23,6 +25,12 @@ CLOVER_LEAF = (31, 122, 46)
 ANCIENT_COLOR = (31, 122, 61)
 ANCIENT_LINE = (31, 92, 122)
 ANCIENT_GREEN = (31, 122, 31)
+WIN_COLOR = (31, 122, 46)
+WIN_ACCENT = (122, 92, 31)
+LOSE_COLOR = (122, 20, 20)
+LOSE_DIM = (46, 5, 5)
+DRAW_COLOR = (31, 92, 122)
+DRAW_ACCENT = (92, 92, 92)
 
 RINGS = (
     (),
@@ -124,7 +132,7 @@ def gerbera_fill_point(delay_ms=20):
     )
 
 
-def gerbera_matrix(delay_ms=20, tail=2):
+def gerbera_matrix(delay_ms=EFFECT_FRAME_DELAY_MS, tail=2):
     for _ in range(2):
         for head in range(9):
             clear_all()
@@ -155,7 +163,7 @@ def delphinium_fill_petal(petal_id):
     pixels.show()
 
 
-def delphinium_matrix(delay_ms=20):
+def delphinium_matrix(delay_ms=EFFECT_FRAME_DELAY_MS):
     clear_all()
     for ring_id in (1, 3, 7):
         show_sequence(RINGS[ring_id], DELPHINIUM_BLUE, delay_ms)
@@ -199,7 +207,7 @@ def clover_fill_leaf(leaf_id):
         pixels.show()
 
 
-def clover_matrix(delay_ms=20):
+def clover_matrix(delay_ms=EFFECT_FRAME_DELAY_MS):
     clear_all()
     for _ in range(3):
         for leaf_id in (4, 1, 2, 3):
@@ -226,7 +234,7 @@ def ancient_fill_petal(petal_id):
         pixels.show()
 
 
-def ancient_matrix(delay_ms=20):
+def ancient_matrix(delay_ms=EFFECT_FRAME_DELAY_MS):
     clear_all()
     for _ in range(3):
         for petal_id in (4, 1, 2, 3):
@@ -249,6 +257,41 @@ def ancient_matrix(delay_ms=20):
         delay_ms,
     )
     show_sequence(tuple(range(55, 61)) + RINGS[1][:39], CLOVER_LINE, delay_ms)
+
+
+def show_win_effect(delay_ms=60):
+    clear_all()
+    for ring_id in range(9, 0, -1):
+        color = WIN_ACCENT if ring_id % 2 else WIN_COLOR
+        fill_sequence(RINGS[ring_id], color)
+        pixels.show()
+        sleep(delay_ms)
+    for color in (WIN_COLOR, WIN_ACCENT, WIN_COLOR):
+        fill_sequence(range(1, NUM_PIXELS + 1), color)
+        pixels.show()
+        sleep(delay_ms * 2)
+
+
+def show_lose_effect(delay_ms=70):
+    fill_sequence(range(1, NUM_PIXELS + 1), LOSE_COLOR)
+    pixels.show()
+    sleep(delay_ms * 2)
+    for ring_id in range(1, 9):
+        fill_sequence(RINGS[ring_id], (0, 0, 0))
+        pixels.show()
+        sleep(delay_ms)
+    fill_sequence(RINGS[9], LOSE_DIM)
+    pixels.show()
+
+
+def show_draw_effect(delay_ms=70):
+    clear_all()
+    for ring_id in range(1, 10):
+        color = DRAW_COLOR if ring_id % 2 else DRAW_ACCENT
+        fill_sequence(RINGS[ring_id], color)
+        pixels.show()
+        sleep(delay_ms)
+    sleep(delay_ms * 2)
 
 
 def run_effect(magic):

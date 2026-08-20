@@ -31,8 +31,8 @@ Connect two micro:bits by radio: use one as a steering-wheel controller and the 
 
 ### Behavior
 
-- Steering begins when the controller is tilted about 7° from center.
-- As the tilt increases, the inner motor slows down; at about 56°, the outer motor runs at 40%.
+- Steering begins when the controller is tilted about 5° from center.
+- As the tilt increases, the inner motor slows down; at about 40°, the outer motor runs at 20%.
 - The rover stops automatically if it receives no control signal for 500 ms.
 
 ## Configuration
