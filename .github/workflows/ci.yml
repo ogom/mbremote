@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+      - name: Install PicoRuby firmware build tools
+        run: sudo apt-get update && sudo apt-get install --yes cmake gcc-arm-none-eabi libusb-1.0-0-dev make
+      - name: Install Node dependencies
+        run: npm ci
+      - name: Download official micro:bit firmware
+        run: npm run setup
+      - name: Run tests
+        run: npm test
+      - name: Verify the magic-circle ML4F model
+        run: npm run verify:ml4f:magic-circle
+      - name: Build PicoRuby firmware
+        run: npm --workspace mbremote run test:picoruby-firmware

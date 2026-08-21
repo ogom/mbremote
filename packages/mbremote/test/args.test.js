@@ -61,6 +61,26 @@ test("parses a shared module directory for build and run", () => {
   assert.equal(run.options.shared, "lib");
 });
 
+test("parses the PicoRuby language for a V2 build", () => {
+  const result = parseArgs([
+    "build",
+    "examples/picoruby/begin",
+    "--language",
+    "ruby",
+    "--board",
+    "v2",
+  ]);
+  assert.equal(result.options.language, "ruby");
+  assert.equal(result.options.board, "v2");
+});
+
+test("rejects unknown source languages", () => {
+  assert.throws(
+    () => parseArgs(["build", "main.rb", "--language", "javascript"]),
+    /--language must be python or ruby/
+  );
+});
+
 test("parses disabled shared modules for build and run", () => {
   const build = parseArgs(["build", "examples/main.py", "--no-shared"]);
   const run = parseArgs(["run", "examples/main.py", "--no-shared"]);

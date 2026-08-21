@@ -1,17 +1,17 @@
 ---
 name: mb-remote-dev
-description: Develop BBC micro:bit MicroPython programs with the npm or workspace version of mbremote, including builds, firmware setup, flashing, serial monitoring, REPL access, and connection troubleshooting.
+description: Develop BBC micro:bit MicroPython and experimental PicoRuby/FemtoRuby programs with the npm or workspace version of mbremote, including builds, firmware setup, flashing, serial monitoring, REPL access, and connection troubleshooting.
 ---
 
 # micro:bit Development with mbremote
 
-Use the npm or repository-workspace version of `mbremote` to develop and verify MicroPython code for micro:bit V1 and V2.
+Use the npm or repository-workspace version of `mbremote` to develop and verify MicroPython code for micro:bit V1 and V2, or experimental PicoRuby/FemtoRuby code for micro:bit V2.
 
 ## Establish the workspace
 
-- If `packages/mbremote/` exists, treat the repository as the CLI source repository; otherwise, treat it as the user's MicroPython project.
+- If `packages/mbremote/` exists, treat the repository as the CLI source repository; otherwise, treat it as the user's micro:bit project.
 - Run commands from the project root unless there is a reason not to.
-- Start by checking `README.md`, `package.json`, and the target Python files.
+- Start by checking `README.md`, `package.json`, and the target Python or Ruby files.
 - When the CLI behavior is uncertain, check the current behavior with `mbremote --help`.
 - Read [references/command.md](references/command.md) for CLI syntax and options.
 - Read [references/config.md](references/config.md) for `setting.json` options, precedence, and examples.
@@ -24,10 +24,10 @@ Use the npm or repository-workspace version of `mbremote` to develop and verify 
 3. Check `mbremote --version`. If the command is unavailable in the CLI source repository, run `npm install`, `npm run setup`, and `npm link --workspace mbremote`.
 4. Install the npm package with `npm install --global mbremote` only after confirming it has been published. Do not assume the npm version is available before publication; use the workspace version instead. After installing the npm package, run `mbremote setup` from the project root.
 5. In the CLI source repository, run `npm run setup` when the official firmware is missing.
-6. Edit any `.py` file for a single-file project. For a multi-file project, always place `main.py` directly in the project directory.
-7. Use only APIs available in micro:bit MicroPython and preserve the existing code style.
-8. Generate a HEX with `mbremote build <FILE|DIR> [--shared DIR|--no-shared]`. For custom MicroPython, also provide `--board v1|v2 --firmware HEX`.
-9. Run `npm test` after changing CLI source code. Even for Python-only changes, confirm that the build succeeds at minimum.
+6. For MicroPython, edit any `.py` file for a single-file project; multi-file projects require `main.py` directly in the project directory. For PicoRuby, a directory project requires `main.rb`; all `.rb` files below it are compiled into the firmware, with `main.rb` evaluated last.
+7. Preserve the language's existing style and use only APIs available in the target runtime.
+8. Generate a MicroPython HEX with `mbremote build <FILE|DIR> [--shared DIR|--no-shared]`. For custom MicroPython, also provide `--board v1|v2 --firmware HEX`. Generate a PicoRuby HEX with `mbremote build <FILE|DIR> --language ruby --board v2`.
+9. Run `npm test` after changing CLI source code. After changing PicoRuby support, also run `npm --workspace mbremote run test:picoruby-firmware`. Confirm that the relevant build succeeds at minimum.
 10. Flash hardware only when the request includes it. For non-interactive work, prefer `--no-monitor` to avoid opening a serial monitor.
 11. Report the result, flashing method, and any unverified items concisely.
 
@@ -40,6 +40,9 @@ Use the npm or repository-workspace version of `mbremote` to develop and verify 
 - When no input is specified, search in this order: `src/`, root `main.py`, then `examples/`.
 - Normally generate a Universal HEX that supports V1 and V2. Use `--board v1` or `--board v2` only when there is a reason to target one board.
 - Custom firmware must target `--board v1` or `--board v2`. Use `--force` for a full flash on first installation and whenever the firmware changes.
+- PicoRuby/FemtoRuby is experimental and supports micro:bit V2 only. It builds PicoRuby source, CODAL, and the Ruby program into one firmware image; `--firmware`, `--shared`, and `--no-shared` do not apply.
+- PicoRuby directory projects must contain `main.rb`. All `.rb` files in the directory tree are collected in lexical path order, and `main.rb` runs last. Keep definitions in files that sort before their users, or use the project's established `lib/` layout.
+- PicoRuby program changes are linked into the firmware, so use `--force` when flashing with `mbremote run`.
 
 ## Choose a flashing method
 
@@ -56,7 +59,7 @@ Use the npm or repository-workspace version of `mbremote` to develop and verify 
 - Confirm the input and output HEX before flashing.
 - `run` builds and flashes, so do not use it for a static check alone.
 - Single-target `run` opens a serial monitor by default. `run --all` flashes multiple boards and exits without opening one. In other non-interactive cases, add `--no-monitor`.
-- Exit `repl` and `monitor` with `Ctrl-]`. Run long-lived monitoring only when explicitly requested.
+- The REPL is available only for MicroPython. PicoRuby has no REPL; use `monitor` only for serial output. Exit `repl` and `monitor` with `Ctrl-]`. Run long-lived monitoring only when explicitly requested.
 
 ## Troubleshoot failures
 
@@ -67,3 +70,4 @@ Use the npm or repository-workspace version of `mbremote` to develop and verify 
 5. For mass-storage failures, inspect `/Volumes/MICROBIT` and `FAIL.TXT`.
 6. If only serial auto-detection fails, specify `--port /dev/cu.usbmodem...`.
 7. After a fix, rerun the command that failed and `npm test`.
+8. For a PicoRuby build failure, check that Git, CMake, the Arm GNU Toolchain, and Ruby are available. The first build compiles and caches the runtime dependencies, so it takes longer than later builds.

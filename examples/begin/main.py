@@ -1,9 +1,9 @@
-from microbit import Image, display, pin1, sleep
+from microbit import Image, display, pin0, sleep
 from rgb_led import RgbLed
 
 
 rgb_led = RgbLed(
-    pin=pin1,
+    pin=pin0,
     pixel_count=10,
     brightness=20,
     frame_delay_ms=20,

@@ -2,13 +2,17 @@
 
 [日本語](README.ja.md)
 
-This directory contains MicroPython examples for [mbremote](../README.md). Run commands from the repository root.
+This directory contains MicroPython and PicoRuby examples for [mbremote](../README.md). Run commands from the repository root.
 
 ## Samples
 
 | Sample | Description | Boards |
 | --- | --- | --- |
 | [begin](begin/main.py) | Basic display and NeoPixel program | V1 / V2 |
+| [picoruby/begin](picoruby/begin/README.md) | Minimal Ruby program using FemtoRuby | V2 |
+| [picoruby/microbit](picoruby/microbit/README.md) | Use LEDs, buttons, and the accelerometer from Ruby | V2 |
+| [picoruby/led-rover](picoruby/led-rover/README.md) | Ruby rover integrating radio, motors, and NeoPixels | V2 |
+| [picoruby/magic-circle](picoruby/magic-circle/README.md) | Ruby magic circle recognizing all four construction motions | V2 |
 | [led-rover](led-rover/README.md) | Controller and rover using radio, motors, and NeoPixel | V1 / V2 |
 | [rps-radio](rps-radio/README.md) | Two-player radio rock-paper-scissors | V1 / V2 |
 | [magic-circle](magic-circle/README.md) | Motion-recognition magic-circle rock-paper-scissors with NeoPixel | V2 |

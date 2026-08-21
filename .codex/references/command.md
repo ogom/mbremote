@@ -5,6 +5,7 @@
 - [Set up the development version](#set-up-the-development-version)
 - [Install the npm version](#install-the-npm-version)
 - [Build](#build)
+- [Build PicoRuby firmware](#build-picoruby-firmware)
 - [Flash](#flash)
 - [Build and run](#build-and-run)
 - [Serial monitor and REPL](#serial-monitor-and-repl)
@@ -52,6 +53,25 @@ mbremote build examples/rps-radio --board v2 --no-shared
 mbremote build examples/begin --shared examples/shared
 mbremote build examples/rps-radio/main.py --board v2 --firmware firmware/microbit-micropython-v2.hex --no-shared
 ```
+
+`--firmware`, `--shared`, and `--no-shared` are MicroPython options.
+
+## Build PicoRuby firmware
+
+PicoRuby/FemtoRuby support is experimental and targets micro:bit V2 only.
+
+```sh
+mbremote build [FILE|DIR] --language ruby --board v2 [-o FILE]
+```
+
+```sh
+mbremote build examples/picoruby/begin --language ruby --board v2
+mbremote build examples/picoruby/magic-circle --language ruby --board v2
+mbremote run examples/picoruby/led-rover --language ruby --board v2 --force --no-monitor
+mbremote run examples/picoruby/magic-circle --language ruby --board v2 --all --force
+```
+
+A PicoRuby directory must contain `main.rb`. All `.rb` files under the directory are compiled into the firmware in lexical path order, with `main.rb` evaluated last. The first build compiles and caches PicoRuby, CODAL, and toolchain artifacts, so it takes longer than later builds. PicoRuby source is linked into firmware; use `--force` when flashing changed Ruby code.
 
 ## Flash
 
@@ -116,6 +136,8 @@ mbremote ls --port /dev/cu.usbmodem1101
 
 Exit `repl` and `monitor` with `Ctrl-]`.
 
+`repl` and `ls` require MicroPython. PicoRuby does not provide a REPL; `monitor` can still show serial output from a PicoRuby program.
+
 ## Common options
 
 | Option | Purpose |
@@ -125,9 +147,9 @@ Exit `repl` and `monitor` with `Ctrl-]`.
 | `--mass-storage` | Copy through the MICROBIT drive. |
 | `--all` | Flash the same HEX to every detected micro:bit. |
 | `--mount DIR` | Specify a mount point and use mass-storage flashing. |
-| `--firmware HEX` | Use custom MicroPython HEX together with `--board v1` or `--board v2`. |
-| `--shared DIR` | Specify the directory of shared Python modules for `build` or `run`. |
-| `--no-shared` | Do not include shared Python modules for `build` or `run`. |
+| `--firmware HEX` | Use custom MicroPython HEX together with `--board v1` or `--board v2`; not supported for PicoRuby. |
+| `--shared DIR` | Specify the directory of shared Python modules for `build` or `run`; not used by PicoRuby. |
+| `--no-shared` | Do not include shared Python modules for `build` or `run`; not used by PicoRuby. |
 | `--port PORT` | Specify a serial port. |
 | `--baud RATE` | Set the baud rate; the default is 115200. |
 | `--timeout MS` | Set the device wait time; the default is 15000 ms. |
@@ -138,6 +160,7 @@ Exit `repl` and `monitor` with `Ctrl-]`.
 
 ```sh
 npm test
+npm --workspace mbremote run test:picoruby-firmware
 mbremote --help
 mbremote build examples/begin
 ```

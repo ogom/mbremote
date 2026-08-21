@@ -18,6 +18,7 @@ const VALUE_OPTIONS = new Map([
   ["--output", "output"],
   ["-o", "output"],
   ["--board", "board"],
+  ["--language", "language"],
   ["--baud", "baud"],
   ["--timeout", "timeout"],
 ]);
@@ -101,6 +102,9 @@ export function parseArgs(argv, defaults = {}) {
   if (!["universal", "v1", "v2"].includes(options.board)) {
     throw new Error("--board must be universal, v1, or v2");
   }
+  if (options.language && !["python", "ruby"].includes(options.language)) {
+    throw new Error("--language must be python or ruby");
+  }
   options.baud = positiveInteger(options.baud, "--baud");
   options.timeout = positiveInteger(options.timeout, "--timeout");
 
@@ -118,9 +122,9 @@ function positiveInteger(value, option) {
 export const helpText = `mbremote - mpremote-style tools for the BBC micro:bit
 
 Usage:
-  mbremote build [FILE|DIR] [-o FILE] [--board universal|v1|v2] [--firmware HEX] [--shared DIR|--no-shared]
+  mbremote build [FILE|DIR] [-o FILE] [--language python|ruby] [--board universal|v1|v2] [--firmware HEX] [--shared DIR|--no-shared]
   mbremote flash [HEX] [--port PORT] [--all] [--force] [--mass-storage] [--mount DIR]
-  mbremote run [FILE|DIR] [--port PORT|--all] [--board universal|v1|v2] [--firmware HEX] [--shared DIR|--no-shared] [--force] [--mass-storage] [--mount DIR] [--no-monitor]
+  mbremote run [FILE|DIR] [--port PORT|--all] [--language python|ruby] [--board universal|v1|v2] [--firmware HEX] [--shared DIR|--no-shared] [--force] [--mass-storage] [--mount DIR] [--no-monitor]
   mbremote setup
   mbremote repl [--port PORT]
   mbremote monitor [--port PORT]
@@ -137,6 +141,7 @@ Options:
   --mass-storage   copy HEX to the mounted MICROBIT drive
   --mount DIR      mounted MICROBIT drive (implies --mass-storage)
   --board BOARD    target universal, v1, or v2 (default: universal)
+  --language LANG  source language: python or ruby (default: detect)
   --firmware HEX   custom MicroPython firmware (requires --board v1 or v2)
   --shared DIR     directory containing shared Python modules
   --no-shared      do not include automatically configured shared modules

@@ -1,0 +1,52 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 6cf2ec6..b6aa1f1 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -38,7 +38,16 @@ set(CMAKE_CXX_COMPILER_WORKS 1)
+ 
+ 
+ #read our config file...
+-file(READ "./codal.json" codal_json)
++# mbremote PicoRuby integration based on MicroPython's src/codal.patch.
++# MicroPython commit: 3f22f306bcbc3461b0c3c60702b74bbce6689013
++# CODAL commit: 871d0fccaf385a57f7cd2c2d61c644ec04107914
++# SPDX-License-Identifier: MIT
++
++if(NOT DEFINED MBREMOTE_PICORUBY_APP_DIR)
++    message(FATAL_ERROR "MBREMOTE_PICORUBY_APP_DIR is required")
++endif()
++
++file(READ "${MBREMOTE_PICORUBY_APP_DIR}/codal.json" codal_json)
+ sbeParseJson(codal codal_json)
+ 
+ set(CODAL_APP_OUTPUT_DIR ".")
+@@ -52,6 +61,11 @@ if("${codal.output_folder}" STRGREATER "")
+     set(CODAL_APP_OUTPUT_DIR "${codal.output_folder}")
+ endif()
+ 
++if(DEFINED MBREMOTE_PICORUBY_APP_DIR)
++    file(RELATIVE_PATH CODAL_APP_SOURCE_DIR
++        "${CMAKE_CURRENT_LIST_DIR}" "${MBREMOTE_PICORUBY_APP_DIR}")
++endif()
++
+ if(NOT "${codal.target.name}" STRGREATER "")
+     message(FATAL_ERROR "${BoldRed}INVALID TARGET.${ColourReset}")
+ endif()
+@@ -288,3 +302,17 @@ set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
+ set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
+ set(CMAKE_EXE_EXPORTS_C_FLAG "")
+ set(CMAKE_EXE_EXPORTS_CXX_FLAG "")
++
++if(NOT DEFINED MBREMOTE_PICORUBY_LIBRARY)
++    message(FATAL_ERROR "MBREMOTE_PICORUBY_LIBRARY is required")
++endif()
++if(NOT DEFINED MBREMOTE_PICORUBY_INCLUDE)
++    message(FATAL_ERROR "MBREMOTE_PICORUBY_INCLUDE is required")
++endif()
++
++add_library(femtoruby STATIC IMPORTED)
++set_target_properties(femtoruby PROPERTIES
++    IMPORTED_LOCATION "${MBREMOTE_PICORUBY_LIBRARY}"
++)
++target_include_directories("MICROBIT" PRIVATE "${MBREMOTE_PICORUBY_INCLUDE}")
++target_link_libraries("MICROBIT" femtoruby)

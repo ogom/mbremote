@@ -41,3 +41,4 @@ pnpm-debug.log*
 
 # Local scratch files
 /tmp/
+/.mbremote-cache/

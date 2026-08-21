@@ -3,6 +3,7 @@
 ## Contents
 
 - [Basic configuration](#basic-configuration)
+- [PicoRuby configuration](#picoruby-configuration)
 - [Specify a configuration file](#specify-a-configuration-file)
 - [Configuration keys](#configuration-keys)
 - [Override settings on the CLI](#override-settings-on-the-cli)
@@ -60,6 +61,21 @@ To use custom V2 firmware:
 
 The `firmware` relative path is also resolved from the working directory. Custom firmware must set `board` to either `v1` or `v2`.
 
+## PicoRuby configuration
+
+PicoRuby/FemtoRuby is experimental and supports only `"v2"`. Use `"language": "ruby"` and build a directory containing `main.rb`.
+
+```json
+{
+  "language": "ruby",
+  "board": "v2",
+  "output": "build/picoruby.hex",
+  "monitor": false
+}
+```
+
+PicoRuby recursively collects `.rb` files from the project directory and does not use `shared`. It builds the Ruby program into the runtime firmware, so `firmware` is a MicroPython-only setting and cannot be used for PicoRuby. Specify `--language ruby --board v2` explicitly when a directory contains both Python and Ruby entry points.
+
 ## Specify a configuration file
 
 Use `--config FILE` for a file other than the default. Relative paths are resolved from the working directory; absolute paths are also supported.
@@ -76,9 +92,10 @@ If the default `config/setting.json` does not exist, mbremote runs without confi
 | Key | Type | Commands | Purpose |
 |---|---|---|---|
 | `board` | string | `build`, `run` | Select `universal`, `v1`, or `v2`. |
+| `language` | string | `build`, `run` | Select the source language, such as `python` or experimental `ruby`. |
 | `output` | string | `build`, `flash`, `run` | Set the HEX output path or default input to flash. |
 | `shared` | string \| false | `build`, `run` | Set the directory of shared Python modules; `false` excludes them. |
-| `firmware` | string | `build`, `run` | Set board-specific custom MicroPython HEX. |
+| `firmware` | string | `build`, `run` | Set board-specific custom MicroPython HEX; unsupported for PicoRuby. |
 | `port` | string | `flash`, `run`, `repl`, `monitor`, `ls` | Set the target micro:bit serial port. |
 | `mount` | string | `flash`, `run` | Set the MICROBIT drive and use mass storage. |
 | `baud` | number | `run`, `repl`, `monitor`, `ls` | Set the serial baud rate. |

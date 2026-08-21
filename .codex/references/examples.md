@@ -4,6 +4,7 @@
 
 - [Develop a single file](#develop-a-single-file)
 - [Develop a multi-file project](#develop-a-multi-file-project)
+- [Develop a PicoRuby project](#develop-a-picoruby-project)
 - [View print output](#view-print-output)
 - [Verify interactively with REPL](#verify-interactively-with-repl)
 - [Troubleshoot DAPLink USB flashing](#troubleshoot-daplink-usb-flashing)
@@ -85,6 +86,24 @@ mbremote build examples/begin --shared examples/shared
 mbremote run examples/begin --shared examples/shared --no-monitor
 ```
 
+## Develop a PicoRuby project
+
+PicoRuby/FemtoRuby support is experimental and works on micro:bit V2. A directory project needs `main.rb`; all Ruby files below the directory are compiled into the firmware, and `main.rb` runs last.
+
+```text
+src/
+├── lib/
+│   └── rover.rb
+└── main.rb
+```
+
+```sh
+mbremote build src --language ruby --board v2
+mbremote run src --language ruby --board v2 --force --no-monitor
+```
+
+Place reusable classes in files that sort before the code which creates them. PicoRuby does not use the MicroPython `shared/` module mechanism or custom `--firmware` images. Its source is linked into firmware, so include `--force` when flashing an updated Ruby program.
+
 ## View print output
 
 Build and flash, then open the monitor.
@@ -108,6 +127,8 @@ mbremote repl
 ```
 
 The command sends an interrupt and opens the MicroPython REPL. Press `Ctrl-]` to exit.
+
+PicoRuby does not provide a REPL. Use `mbremote monitor` to inspect its serial output instead.
 
 ## Troubleshoot DAPLink USB flashing
 
@@ -189,6 +210,7 @@ With `--port`, mbremote selects as the DAPLink USB target the micro:bit whose DA
 
 ```sh
 npm test
+npm --workspace mbremote run test:picoruby-firmware
 mbremote --help
 mbremote build examples/begin
 ```

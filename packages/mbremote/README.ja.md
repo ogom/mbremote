@@ -4,12 +4,18 @@
 
 [![npm version](https://img.shields.io/npm/v/mbremote.svg)](https://www.npmjs.com/package/mbremote)
 
-BBC micro:bit 向けMicroPythonプロジェクトをビルド、書き込み、操作するためのコマンドラインツールです。
-公式 micro:bit Python Editor V3 のfirmware、`@microbit/microbit-fs`、`@microbit/microbit-connection` を使用します。
+BBC micro:bit 向けMicroPython / PicoRubyプロジェクトをビルド、書き込み、操作するためのコマンドラインツールです。
+
+## 依存関係
+
+- **すべてのプロジェクト:** Node.js 20以降（npmを含む）
+- **MicroPythonプロジェクト:** 公式 micro:bit Python Editor V3 のV1/V2 firmware、`@microbit/microbit-fs`、`@microbit/microbit-connection` を使用します。
+  - JavaScriptパッケージはnpmがインストールし、firmwareは `mbremote setup` がダウンロードします。追加のビルドツールは不要です。
+- **PicoRubyプロジェクト（実験対応）:** Git、Rakeを含むRuby、GNU Make、CMake、Arm GNU Toolchain（`arm-none-eabi-gcc` と `arm-none-eabi-ar`）が必要です。
+  - 初回ビルド時には、固定されたPicoRubyとmicro:bit V2のソースを取得するため、ネットワーク接続も必要です。
+- **DAPLink USBによる書き込み:** `usb` npm依存パッケージに対応するビルド済みバイナリがない場合、プラットフォームのlibusb開発パッケージが必要になることがあります。
 
 ## インストール
-
-Node.js 20以降が必要です。
 
 ```sh
 npm install --global mbremote
@@ -40,6 +46,17 @@ mbremote build main.py
 ```
 
 標準では、micro:bit V1/V2の両方に対応するUniversal HEXを `build/microbit.hex` に生成します。
+
+### PicoRubyをビルドする（実験対応）
+
+`main.rb` をFemtoRuby（mruby/c）バイトコードへ変換し、micro:bit V2用firmwareへ組み込みます。
+
+```sh
+mbremote build main.rb --language ruby --board v2
+mbremote run main.rb --language ruby --board v2 --force
+```
+
+初回ビルドにはGit、CMake、Arm GNU Toolchain、Rubyが必要です。公式ソースと中間生成物は `.mbremote-cache/` に保存されます。現在はV2、プロジェクト直下の複数 `.rb`、`puts`、LED表示、A/Bボタン、ロゴタッチ、加速度XYZ、待機・経過時間、無線通信、Pin/PWM、NeoPixelをサポートします。Rubyファイルはファイル名順に結合され、`main.rb` が最後に実行されます。REPLには未対応です。複数ファイルの構成はworkspaceの [picoruby/led-roverサンプル](../../examples/picoruby/led-rover/README.ja.md)、API一覧は [picoruby/microbitサンプル](../../examples/picoruby/microbit/README.ja.md) を参照してください。
 
 ### 書き込みと実行
 
@@ -103,6 +120,7 @@ examples/
 {
   "shared": false,
   "board": "v2",
+  "language": "python",
   "firmware": "firmware/custom-v2.hex",
   "all": true
 }
@@ -110,16 +128,16 @@ examples/
 
 ## コマンド
 
-| コマンド                     | 説明                                                             |
-| ---------------------------- | ---------------------------------------------------------------- |
-| `mbremote setup`             | 設定ファイルを作成し、公式V1/V2 firmwareをダウンロードします。   |
-| `mbremote build [FILE\|DIR]` | `build/microbit.hex` を生成します。                              |
-| `mbremote flash [HEX]`       | DAPLink USBまたはmass storageでHEXを書き込みます。               |
-| `mbremote run [FILE\|DIR]`   | ビルド、書き込み、シリアルモニター起動を行います。               |
-| `mbremote ports`             | 接続中のmicro:bitのシリアルポートを一覧表示します。              |
-| `mbremote monitor`           | シリアルモニターを開きます。                                     |
-| `mbremote repl`              | MicroPython REPLを開きます。                                     |
-| `mbremote ls`                | 接続中のmicro:bit上のファイルを一覧表示します。                  |
+| コマンド                     | 説明                                                           |
+| ---------------------------- | -------------------------------------------------------------- |
+| `mbremote setup`             | 設定ファイルを作成し、公式V1/V2 firmwareをダウンロードします。 |
+| `mbremote build [FILE\|DIR]` | `build/microbit.hex` を生成します。                            |
+| `mbremote flash [HEX]`       | DAPLink USBまたはmass storageでHEXを書き込みます。             |
+| `mbremote run [FILE\|DIR]`   | ビルド、書き込み、シリアルモニター起動を行います。             |
+| `mbremote ports`             | 接続中のmicro:bitのシリアルポートを一覧表示します。            |
+| `mbremote monitor`           | シリアルモニターを開きます。                                   |
+| `mbremote repl`              | MicroPython REPLを開きます。                                   |
+| `mbremote ls`                | 接続中のmicro:bit上のファイルを一覧表示します。                |
 
 すべてのオプションは `mbremote --help` で確認できます。複数台のmicro:bitが接続されている場合は、`--port /dev/cu.usbmodem...` で対象を選択します。
 `monitor` と `repl` は `Ctrl-]` で終了します。
@@ -152,6 +170,12 @@ npm link --workspace mbremote
 npm test --workspace mbremote
 ```
 
+PicoRubyファームウェアの統合ビルドは、必要なツールを用意して次のコマンドで確認できます。
+
+```sh
+npm run test:picoruby-firmware --workspace mbremote
+```
+
 ## ライセンス
 
-[MIT](LICENSE)
+[MIT](LICENSE)です。異なるライセンスで配布されるコンポーネントについては、[第三者ソフトウェアに関する通知](THIRD_PARTY_NOTICES.md)を参照してください。

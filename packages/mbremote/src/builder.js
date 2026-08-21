@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 
 import { MicropythonFsHex, microbitBoardId } from "@microbit/microbit-fs";
 
+import { buildPicoRubyHex } from "./picoruby.js";
+
 const packageRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   ".."
@@ -16,12 +18,25 @@ export async function buildHex({
   input,
   output = "build/microbit.hex",
   board = "universal",
+  language,
   firmware: customFirmware,
   shared,
   cwd = process.cwd(),
   log = console.log,
 } = {}) {
-  const source = await resolveInput(input, cwd);
+  const source = await resolveInput(input, cwd, { language });
+  const resolvedLanguage = await resolveLanguage(source, language);
+  if (resolvedLanguage === "ruby") {
+    return buildPicoRubyHex({
+      source,
+      output,
+      board,
+      firmware: customFirmware,
+      cwd,
+      log,
+    });
+  }
+
   const sharedDirectory =
     shared === false ? false : shared ? path.resolve(cwd, shared) : undefined;
   const files = await readSourceFiles(source, { shared: sharedDirectory });
@@ -58,22 +73,75 @@ export async function buildHex({
         );
   await fs.writeFile(outputPath, hex, "utf8");
   log(`built: ${outputPath}`);
-  return { outputPath, files: files.map(({ target }) => target), firmware };
+  return {
+    outputPath,
+    files: files.map(({ target }) => target),
+    firmware,
+    language: "python",
+  };
 }
 
-export async function resolveInput(input, cwd = process.cwd()) {
+export async function resolveInput(
+  input,
+  cwd = process.cwd(),
+  { language } = {}
+) {
   if (input) {
     return path.resolve(cwd, input);
   }
-  for (const candidate of ["src", "main.py", "examples"]) {
+  const candidates =
+    language === "ruby"
+      ? ["src", "main.rb", "examples"]
+      : language === "python"
+        ? ["src", "main.py", "examples"]
+        : ["src", "main.py", "main.rb", "examples"];
+  for (const candidate of candidates) {
     const resolved = path.resolve(cwd, candidate);
-    if (await isUsableDefaultInput(resolved)) {
+    if (await isUsableDefaultInput(resolved, language)) {
       return resolved;
     }
   }
   throw new Error(
-    "no input found; pass a Python file or a directory containing main.py"
+    "no input found; pass a .py/.rb file or a directory containing main.py/main.rb"
   );
+}
+
+export async function resolveLanguage(sourcePath, requestedLanguage) {
+  const stat = await fs.stat(sourcePath).catch(() => undefined);
+  if (!stat) {
+    throw new Error(`input does not exist: ${sourcePath}`);
+  }
+
+  let detected;
+  if (stat.isFile()) {
+    const extension = path.extname(sourcePath).toLowerCase();
+    if (extension === ".py") detected = "python";
+    if (extension === ".rb") detected = "ruby";
+  } else if (stat.isDirectory()) {
+    const hasPython = await exists(path.join(sourcePath, "main.py"));
+    const hasRuby = await exists(path.join(sourcePath, "main.rb"));
+    if (hasPython && hasRuby && !requestedLanguage) {
+      throw new Error(
+        `${sourcePath} contains both main.py and main.rb; pass --language python or ruby`
+      );
+    }
+    if (hasPython) detected = "python";
+    if (hasRuby && (!hasPython || requestedLanguage === "ruby")) {
+      detected = "ruby";
+    }
+  }
+
+  if (!detected) {
+    throw new Error(
+      `cannot detect source language; expected main.py or main.rb: ${sourcePath}`
+    );
+  }
+  if (requestedLanguage && requestedLanguage !== detected) {
+    throw new Error(
+      `--language ${requestedLanguage} does not match ${sourcePath}`
+    );
+  }
+  return detected;
 }
 
 export async function readSourceFiles(sourcePath, { shared } = {}) {
@@ -228,9 +296,19 @@ async function readPythonFiles(directory, { moduleNames = false } = {}) {
   );
 }
 
-async function isUsableDefaultInput(filename) {
+async function isUsableDefaultInput(filename, language) {
   const stat = await fs.stat(filename).catch(() => undefined);
   if (!stat) return false;
-  if (stat.isFile()) return path.basename(filename) === "main.py";
-  return stat.isDirectory() && (await exists(path.join(filename, "main.py")));
+  const entryPoints =
+    language === "ruby"
+      ? ["main.rb"]
+      : language === "python"
+        ? ["main.py"]
+        : ["main.py", "main.rb"];
+  if (stat.isFile()) return entryPoints.includes(path.basename(filename));
+  if (!stat.isDirectory()) return false;
+  for (const entryPoint of entryPoints) {
+    if (await exists(path.join(filename, entryPoint))) return true;
+  }
+  return false;
 }

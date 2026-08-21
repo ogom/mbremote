@@ -44,6 +44,7 @@ export async function main(argv, { cwd = process.cwd() } = {}) {
         input: positionals[0],
         output: options.output,
         board: options.board,
+        language: options.language,
         firmware: options.firmware,
         shared: options.shared,
         cwd,
@@ -59,6 +60,7 @@ export async function main(argv, { cwd = process.cwd() } = {}) {
         input: positionals[0],
         output: options.output,
         board: options.board,
+        language: options.language,
         firmware: options.firmware,
         shared: options.shared,
         cwd,
@@ -139,6 +141,9 @@ async function flash(hexPath, options) {
 }
 
 function assertOptions(command, options) {
+  if (options.language && !["build", "run"].includes(command)) {
+    throw new Error("--language can only be used with build or run");
+  }
   if (options.firmware && !["build", "run"].includes(command)) {
     throw new Error("--firmware can only be used with build or run");
   }
