@@ -1,0 +1,2 @@
+# A unified diff represents unchanged blank lines with one leading space.
+packages/mbremote/support/v2/picoruby/codal.patch whitespace=-blank-at-eol

@@ -1,7 +1,7 @@
 {
   "name": "mbremote",
-  "version": "0.2.0",
-  "description": "Command-line tools for building and flashing BBC micro:bit MicroPython projects",
+  "version": "0.3.0",
+  "description": "Command-line tools for building and flashing BBC micro:bit MicroPython and PicoRuby projects",
   "author": "ogom",
   "repository": {
     "type": "git",
@@ -14,8 +14,11 @@
   "homepage": "https://github.com/ogom/mbremote/tree/main/packages/mbremote#readme",
   "type": "module",
   "files": [
+    "CHANGELOG.md",
+    "THIRD_PARTY_NOTICES.md",
     "bin",
-    "src"
+    "src",
+    "support"
   ],
   "bin": {
     "mbremote": "bin/mbremote.js"
@@ -26,11 +29,13 @@
     "flash": "node bin/mbremote.js flash",
     "run": "node bin/mbremote.js run",
     "test": "node --test test/*.test.js",
-    "prepublishOnly": "npm test"
+    "test:picoruby-firmware": "node bin/mbremote.js build ../../examples/picoruby/begin --language ruby --board v2 -o build/picoruby-smoke.hex",
+    "prepublishOnly": "npm test && npm run test:picoruby-firmware"
   },
   "keywords": [
     "microbit",
     "micropython",
+    "picoruby",
     "daplink",
     "cli"
   ],

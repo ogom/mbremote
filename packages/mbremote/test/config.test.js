@@ -46,6 +46,7 @@ test("loads setting.json options used by the command", async () => {
     JSON.stringify({
       shared: "common",
       board: "v2",
+      language: "ruby",
       firmware: "firmware/custom-v2.hex",
       port: "/dev/test",
     })
@@ -54,6 +55,7 @@ test("loads setting.json options used by the command", async () => {
   assert.deepEqual(await loadConfigOptions("build", { cwd }), {
     shared: "common",
     board: "v2",
+    language: "ruby",
     firmware: "firmware/custom-v2.hex",
   });
   assert.deepEqual(await loadConfigOptions("monitor", { cwd }), {

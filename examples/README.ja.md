@@ -2,13 +2,17 @@
 
 [English](README.md)
 
-このディレクトリには [mbremote](../README.ja.md) 向けの MicroPython サンプルが含まれています。コマンドはリポジトリのルートで実行します。
+このディレクトリには [mbremote](../README.ja.md) 向けの MicroPython / PicoRuby サンプルが含まれています。コマンドはリポジトリのルートで実行します。
 
 ## サンプル
 
 | サンプル | 説明 | 対応機種 |
 | --- | --- | --- |
 | [begin](begin/main.py) | ディスプレイと NeoPixel を使う基本プログラム | V1 / V2 |
+| [picoruby/begin](picoruby/begin/README.ja.md) | FemtoRubyを使う最小Rubyプログラム | V2 |
+| [picoruby/microbit](picoruby/microbit/README.ja.md) | RubyからLED、ボタン、加速度センサーを使う | V2 |
+| [picoruby/led-rover](picoruby/led-rover/README.ja.md) | 無線、モーター、NeoPixelを統合したRubyローバー | V2 |
+| [picoruby/magic-circle](picoruby/magic-circle/README.ja.md) | 4動作を順番に認識して構築するRuby魔法陣 | V2 |
 | [led-rover](led-rover/README.ja.md) | 無線、モーター、NeoPixel を使うコントローラーとローバー | V1 / V2 |
 | [rps-radio](rps-radio/README.ja.md) | 2人で遊ぶ無線じゃんけん | V1 / V2 |
 | [magic-circle](magic-circle/README.ja.md) | 動作認識と NeoPixel を使う魔法陣対戦じゃんけん | V2 |

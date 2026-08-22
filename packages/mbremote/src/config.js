@@ -3,6 +3,7 @@ import path from "node:path";
 
 const OPTION_TYPES = new Map([
   ["board", "string"],
+  ["language", "string"],
   ["output", "string"],
   ["shared", "string-or-false"],
   ["firmware", "string"],
@@ -17,7 +18,10 @@ const OPTION_TYPES = new Map([
 ]);
 
 const COMMAND_OPTIONS = new Map([
-  ["build", new Set(["board", "output", "shared", "firmware"])],
+  [
+    "build",
+    new Set(["board", "language", "output", "shared", "firmware"]),
+  ],
   [
     "flash",
     new Set(["output", "port", "mount", "massStorage", "all", "force"]),
@@ -26,6 +30,7 @@ const COMMAND_OPTIONS = new Map([
     "run",
     new Set([
       "board",
+      "language",
       "output",
       "shared",
       "firmware",

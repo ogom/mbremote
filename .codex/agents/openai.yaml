@@ -1,4 +1,4 @@
 interface:
   display_name: "mbremote micro:bit Development"
-  short_description: "Develop and flash micro:bit MicroPython with mbremote"
-  default_prompt: "Use $mb-remote-dev to develop, build, and flash a micro:bit MicroPython program with mbremote."
+  short_description: "Develop and flash micro:bit MicroPython or PicoRuby with mbremote"
+  default_prompt: "Use $mb-remote-dev to develop, build, and flash a micro:bit MicroPython or PicoRuby program with mbremote."

@@ -11,11 +11,19 @@
   "scripts": {
     "setup": "node packages/mbremote/bin/mbremote.js setup",
     "build:firmware:magic-circle": "sh scripts/firmware/build-magic-circle.sh",
+    "build:firmware:picoruby": "node packages/mbremote/bin/mbremote.js build --language ruby --board v2",
     "mbremote": "node packages/mbremote/bin/mbremote.js",
     "build": "node packages/mbremote/bin/mbremote.js build",
     "flash": "node packages/mbremote/bin/mbremote.js flash",
     "run": "node packages/mbremote/bin/mbremote.js run",
-    "test": "npm --workspace mbremote test"
+    "test": "npm --workspace mbremote test",
+    "train:ml4f:magic-circle": "node examples/picoruby/magic-circle/scripts/train-model.mjs",
+    "verify:ml4f:magic-circle": "node examples/picoruby/magic-circle/scripts/verify-ml4f-model.mjs",
+    "generate:ml4f:magic-circle": "node examples/picoruby/magic-circle/scripts/generate-ml4f-model.mjs"
+  },
+  "devDependencies": {
+    "@microbit/ml4f": "2.0.0-beta.0",
+    "@tensorflow/tfjs": "4.20.0"
   },
   "engines": {
     "node": ">=20.0.0"

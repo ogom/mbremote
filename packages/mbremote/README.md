@@ -4,12 +4,18 @@
 
 [![npm version](https://img.shields.io/npm/v/mbremote.svg)](https://www.npmjs.com/package/mbremote)
 
-Command-line tools for building, flashing, and inspecting BBC micro:bit MicroPython projects.
-It uses the official micro:bit Python Editor V3 firmware, `@microbit/microbit-fs`, and `@microbit/microbit-connection`.
+Command-line tools for building, flashing, and inspecting BBC micro:bit MicroPython and PicoRuby projects.
+
+## Dependencies
+
+- **All projects:** Node.js 20 or later (including npm).
+- **MicroPython projects:** the official micro:bit Python Editor V3 V1/V2 firmware, `@microbit/microbit-fs`, and `@microbit/microbit-connection`.
+  - npm installs the JavaScript packages; `mbremote setup` downloads the firmware. No additional build tools are required.
+- **PicoRuby projects (experimental):** Git, Ruby with Rake, GNU Make, CMake, and the Arm GNU Toolchain (`arm-none-eabi-gcc` and `arm-none-eabi-ar`).
+  - The first build also needs network access to clone the pinned PicoRuby and micro:bit V2 sources.
+- **DAPLink USB flashing:** the `usb` npm dependency may require the platform's libusb development package when no prebuilt native binary is available.
 
 ## Installation
-
-Node.js 20 or later is required.
 
 ```sh
 npm install --global mbremote
@@ -41,6 +47,17 @@ mbremote build main.py
 ```
 
 By default, this creates a Universal HEX for both micro:bit V1 and V2 at `build/microbit.hex`.
+
+### Build PicoRuby (experimental)
+
+Compile `main.rb` to FemtoRuby (mruby/c) bytecode and link it into micro:bit V2 firmware:
+
+```sh
+mbremote build main.rb --language ruby --board v2
+mbremote run main.rb --language ruby --board v2 --force
+```
+
+The first build requires Git, CMake, Arm GNU Toolchain, and Ruby. Official sources and intermediate files are cached in `.mbremote-cache/`. The current milestone supports V2, multiple top-level `.rb` files, `puts`, the LED display, A/B buttons, the touch logo, accelerometer XYZ values, sleeping and elapsed time, radio communication, pins/PWM, and NeoPixel output. Ruby files are combined in filename order, with `main.rb` executed last. The REPL is not implemented yet. See the workspace [picoruby/led-rover example](../../examples/picoruby/led-rover/README.md) for a multi-file project and [picoruby/microbit example](../../examples/picoruby/microbit/README.md) for the API list.
 
 ### Flash and run
 
@@ -104,6 +121,7 @@ Pass `--config FILE` to use another file; command-line options take precedence.
 {
   "shared": false,
   "board": "v2",
+  "language": "python",
   "firmware": "firmware/custom-v2.hex",
   "all": true
 }
@@ -111,16 +129,16 @@ Pass `--config FILE` to use another file; command-line options take precedence.
 
 ## Commands
 
-| Command                      | Description                                                   |
-| ---------------------------- | ------------------------------------------------------------- |
-| `mbremote setup`             | Create the config file and download official V1/V2 firmware.  |
-| `mbremote build [FILE\|DIR]` | Create `build/microbit.hex`.                                  |
-| `mbremote flash [HEX]`       | Flash a HEX using DAPLink USB or mass storage.                |
-| `mbremote run [FILE\|DIR]`   | Build, flash, and open the serial monitor.                    |
-| `mbremote ports`             | List connected micro:bit serial ports.                        |
-| `mbremote monitor`           | Open a serial monitor.                                        |
-| `mbremote repl`              | Open the MicroPython REPL.                                    |
-| `mbremote ls`                | List files on the connected micro:bit.                        |
+| Command                      | Description                                                  |
+| ---------------------------- | ------------------------------------------------------------ |
+| `mbremote setup`             | Create the config file and download official V1/V2 firmware. |
+| `mbremote build [FILE\|DIR]` | Create `build/microbit.hex`.                                 |
+| `mbremote flash [HEX]`       | Flash a HEX using DAPLink USB or mass storage.               |
+| `mbremote run [FILE\|DIR]`   | Build, flash, and open the serial monitor.                   |
+| `mbremote ports`             | List connected micro:bit serial ports.                       |
+| `mbremote monitor`           | Open a serial monitor.                                       |
+| `mbremote repl`              | Open the MicroPython REPL.                                   |
+| `mbremote ls`                | List files on the connected micro:bit.                       |
 
 Run `mbremote --help` for all options. When multiple boards are connected, select one with `--port /dev/cu.usbmodem...`.
 `monitor` and `repl` exit with `Ctrl-]`.
@@ -153,6 +171,12 @@ Run the tests with:
 npm test --workspace mbremote
 ```
 
+Run the optional PicoRuby firmware integration build with:
+
+```sh
+npm run test:picoruby-firmware --workspace mbremote
+```
+
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). See [Third-Party Notices](THIRD_PARTY_NOTICES.md) for components distributed under other licenses.

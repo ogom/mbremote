@@ -10,6 +10,7 @@ import {
   readSourceFiles,
   resolveFirmware,
   resolveInput,
+  resolveLanguage,
 } from "../src/builder.js";
 
 const repositoryFirmware = path.resolve(
@@ -231,4 +232,36 @@ test("default input falls back to examples", async () => {
   await fs.mkdir(examples);
   await fs.writeFile(path.join(examples, "main.py"), "print('hello')\n");
   assert.equal(await resolveInput(undefined, directory), examples);
+});
+
+test("detects Python and Ruby entry points", async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "mbremote-test-"));
+  const python = path.join(directory, "main.py");
+  const ruby = path.join(directory, "program.rb");
+  await fs.writeFile(python, "print('hello')\n");
+  await fs.writeFile(ruby, 'puts "hello"\n');
+
+  assert.equal(await resolveLanguage(python), "python");
+  assert.equal(await resolveLanguage(ruby), "ruby");
+});
+
+test("requires an explicit language for a mixed project", async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "mbremote-test-"));
+  await fs.writeFile(path.join(directory, "main.py"), "print('hello')\n");
+  await fs.writeFile(path.join(directory, "main.rb"), 'puts "hello"\n');
+
+  await assert.rejects(resolveLanguage(directory), /contains both main.py and main.rb/);
+  assert.equal(await resolveLanguage(directory, "python"), "python");
+  assert.equal(await resolveLanguage(directory, "ruby"), "ruby");
+});
+
+test("resolves main.rb as the default Ruby input", async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "mbremote-test-"));
+  const ruby = path.join(directory, "main.rb");
+  await fs.writeFile(ruby, 'puts "hello"\n');
+
+  assert.equal(
+    await resolveInput(undefined, directory, { language: "ruby" }),
+    ruby
+  );
 });
