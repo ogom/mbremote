@@ -25,7 +25,7 @@ export async function buildPicoRubyHex({
     throw new Error("PicoRuby currently requires --board v2");
   }
   if (firmware) {
-    throw new Error("--firmware is not supported for PicoRuby builds");
+    throw new Error("--base-firmware is not supported for PicoRuby builds");
   }
   const files = await resolveRubySourceFiles(source);
   const outputPath = path.resolve(cwd, output);
@@ -61,7 +61,7 @@ export async function buildPicoRubyHex({
     outputPath,
     files: files.map((file) => file.target),
     firmware: { v2: "PicoRuby/FemtoRuby source build" },
-    language: "ruby",
+    language: "picoruby",
   };
 }
 

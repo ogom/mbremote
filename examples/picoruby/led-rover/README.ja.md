@@ -53,5 +53,5 @@ MicroPython版`examples/led-rover`の操作、モーター制御、安全停止�
 ## 書き込み
 
 ```sh
-mbremote run examples/picoruby/led-rover --language ruby --board v2 --all --force
+mbremote run examples/picoruby/led-rover --language picoruby --board v2 --all --force
 ```

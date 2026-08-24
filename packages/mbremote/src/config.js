@@ -4,15 +4,15 @@ import path from "node:path";
 const OPTION_TYPES = new Map([
   ["board", "string"],
   ["language", "string"],
-  ["output", "string"],
-  ["shared", "string-or-false"],
   ["firmware", "string"],
+  ["shared", "string-or-false"],
+  ["base_firmware", "string"],
   ["port", "string"],
   ["mount", "string"],
   ["baud", "number"],
   ["timeout", "number"],
   ["monitor", "boolean"],
-  ["massStorage", "boolean"],
+  ["mass_storage", "boolean"],
   ["all", "boolean"],
   ["force", "boolean"],
 ]);
@@ -20,33 +20,33 @@ const OPTION_TYPES = new Map([
 const COMMAND_OPTIONS = new Map([
   [
     "build",
-    new Set(["board", "language", "output", "shared", "firmware"]),
+    new Set(["board", "language", "firmware", "shared", "base_firmware"]),
   ],
   [
     "flash",
-    new Set(["output", "port", "mount", "massStorage", "all", "force"]),
+    new Set(["firmware", "port", "mount", "mass_storage", "all", "force"]),
   ],
   [
     "run",
     new Set([
       "board",
       "language",
-      "output",
-      "shared",
       "firmware",
+      "shared",
+      "base_firmware",
       "port",
       "mount",
       "baud",
       "timeout",
       "monitor",
-      "massStorage",
+      "mass_storage",
       "all",
       "force",
     ]),
   ],
   ["repl", new Set(["port", "baud"])],
   ["monitor", new Set(["port", "baud"])],
-  ["ls", new Set(["port", "baud", "timeout"])],
+  ["fs", new Set(["port", "baud", "timeout"])],
   ["ports", new Set()],
 ]);
 
@@ -126,6 +126,15 @@ export async function loadConfigOptions(
 
   const allowed = COMMAND_OPTIONS.get(command) || new Set();
   return Object.fromEntries(
-    Object.entries(config).filter(([key]) => allowed.has(key))
+    Object.entries(config)
+      .filter(([key]) => allowed.has(key))
+      .map(([key, value]) => [
+        key === "mass_storage"
+          ? "massStorage"
+          : key === "base_firmware"
+            ? "baseFirmware"
+            : key,
+        value,
+      ])
   );
 }

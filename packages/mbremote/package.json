@@ -29,7 +29,7 @@
     "flash": "node bin/mbremote.js flash",
     "run": "node bin/mbremote.js run",
     "test": "node --test test/*.test.js",
-    "test:picoruby-firmware": "node bin/mbremote.js build ../../examples/picoruby/begin --language ruby --board v2 -o build/picoruby-smoke.hex",
+    "test:picoruby-firmware": "node bin/mbremote.js build ../../examples/picoruby/begin --language picoruby --board v2 --firmware build/picoruby-smoke.hex",
     "prepublishOnly": "npm test && npm run test:picoruby-firmware"
   },
   "keywords": [

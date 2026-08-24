@@ -19,7 +19,7 @@
 
 ## ビルドと書き込み
 
-最初に mbremote をインストールし、公式 firmware をダウンロードします。
+最初に mbremote をインストールし、公式ファームウェアをダウンロードします。
 
 ```sh
 npm install --global mbremote
@@ -47,13 +47,13 @@ mbremote run examples/rps-radio --all
 mbremote build examples/begin --shared examples/shared
 ```
 
-## magic-circle 用 firmware
+## magic-circle 用ファームウェア
 
-`magic-circle` は、動作認識モデルと RGB LED モジュールを凍結した V2 用の custom firmware を必要とします。初回の書き込み時、または firmware を変更したときは、firmware を生成して full flash します。
+`magic-circle` は、動作認識モデルと RGB LED モジュールを組み込んだ V2 用のカスタムファームウェアを必要とします。初回の書き込み時、またはファームウェアを変更したときは、ファームウェアを生成して完全書き込みします。
 
 ```sh
 npm run build:firmware:magic-circle
-mbremote run examples/magic-circle/main.py --all --no-shared --board v2 --firmware firmware/microbit-micropython-v2-magic-circle.hex --force
+mbremote run examples/magic-circle/main.py --all --no-shared --board v2 --base-firmware firmware/microbit-micropython-v2-magic-circle.hex --force
 ```
 
 CLI の詳細は [ルートREADME](../README.ja.md) を参照してください。

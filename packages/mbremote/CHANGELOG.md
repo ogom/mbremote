@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.4.0 — 2026-08-24
+
+- Rename source languages to `micropython` and `picoruby`.
+- Standardize configuration keys on `snake_case`, including
+  `base_firmware` and `mass_storage`.
+- Add `mbremote build clean` and move file listing to `mbremote fs ls`.
+- Rename the built or flashed HEX option to `--firmware`; use
+  `--base-firmware` for a custom MicroPython base firmware.
+- Require `mbremote flash --firmware FILE` for a non-default HEX instead of a
+  positional input.
+- Express `timeout` values in seconds and set the default to 10 seconds.
+- Reorganize the README, add configuration references, a release checklist,
+  and a related-project link to rpremote.
+
 ## 0.3.0 — 2026-08-22
 
 - Add experimental PicoRuby/FemtoRuby support for BBC micro:bit V2.

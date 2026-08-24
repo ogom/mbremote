@@ -46,8 +46,8 @@ test("loads setting.json options used by the command", async () => {
     JSON.stringify({
       shared: "common",
       board: "v2",
-      language: "ruby",
-      firmware: "firmware/custom-v2.hex",
+      language: "picoruby",
+      base_firmware: "firmware/custom-v2.hex",
       port: "/dev/test",
     })
   );
@@ -55,10 +55,13 @@ test("loads setting.json options used by the command", async () => {
   assert.deepEqual(await loadConfigOptions("build", { cwd }), {
     shared: "common",
     board: "v2",
-    language: "ruby",
-    firmware: "firmware/custom-v2.hex",
+    language: "picoruby",
+    baseFirmware: "firmware/custom-v2.hex",
   });
   assert.deepEqual(await loadConfigOptions("monitor", { cwd }), {
+    port: "/dev/test",
+  });
+  assert.deepEqual(await loadConfigOptions("fs", { cwd }), {
     port: "/dev/test",
   });
 });
@@ -70,6 +73,51 @@ test("loads false for shared to disable shared modules", async () => {
   assert.deepEqual(await loadConfigOptions("run", { cwd }), {
     shared: false,
   });
+});
+
+test("loads snake_case mass_storage as the mass-storage option", async () => {
+  const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "mbremote-test-"));
+  await writeConfig(cwd, '{"mass_storage":true}');
+
+  assert.deepEqual(await loadConfigOptions("flash", { cwd }), {
+    massStorage: true,
+  });
+});
+
+test("loads timeout in seconds", async () => {
+  const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "mbremote-test-"));
+  await writeConfig(cwd, '{"timeout":2}');
+
+  assert.deepEqual(await loadConfigOptions("run", { cwd }), { timeout: 2 });
+});
+
+test("rejects camelCase config keys", async () => {
+  const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "mbremote-test-"));
+  await writeConfig(cwd, '{"massStorage":true}');
+
+  await assert.rejects(
+    loadConfigOptions("flash", { cwd }),
+    /unknown config option: massStorage/
+  );
+});
+
+test("loads firmware as the build artifact path", async () => {
+  const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "mbremote-test-"));
+  await writeConfig(cwd, '{"firmware":"build/custom.hex"}');
+
+  assert.deepEqual(await loadConfigOptions("build", { cwd }), {
+    firmware: "build/custom.hex",
+  });
+});
+
+test("rejects the former output config key", async () => {
+  const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "mbremote-test-"));
+  await writeConfig(cwd, '{"output":"build/custom.hex"}');
+
+  await assert.rejects(
+    loadConfigOptions("build", { cwd }),
+    /unknown config option: output/
+  );
 });
 
 test("rejects true for shared", async () => {

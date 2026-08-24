@@ -69,7 +69,7 @@ CreateAIの動作認識で魔法陣を構築する、1人練習と2人対戦の�
 
 コマンドはリポジトリのルートで実行します。
 
-### カスタムfirmwareの生成
+### カスタムファームウェアの生成
 
 初回と`ml_model.py`または`rgb_led.py`を変更したときに実行します。
 
@@ -77,21 +77,21 @@ CreateAIの動作認識で魔法陣を構築する、1人練習と2人対戦の�
 npm run build:firmware:magic-circle
 ```
 
-`data-samples.json`の学習モデルと`rgb_led.py`はカスタムfirmwareに組み込まれるため、20KBのファイル領域を消費しません。
+`data-samples.json`の学習モデルと`rgb_led.py`はカスタムファームウェアに組み込まれるため、20KBのファイル領域を消費しません。
 
 ### 1台でデバッグ
 
 micro:bitを1台だけ接続して`--all`を付けずに実行すると、書き込み後にシリアルモニターが開きます。状態遷移、動作認識と信頼度、魔法陣の完成時間、通信、勝敗のデバッグログを表示します。
 
 ```sh
-mbremote run examples/magic-circle/main.py --no-shared --board v2 --firmware firmware/microbit-micropython-v2-magic-circle.hex
+mbremote run examples/magic-circle/main.py --no-shared --board v2 --base-firmware firmware/microbit-micropython-v2-magic-circle.hex
 ```
 
 モニターは`Ctrl-]`で終了します。ログを止める場合は[main.py](main.py)の`DEBUG`を`False`に変更します。
 
 ### プログラムの転送
 
-初回は`--force`を付け、カスタムfirmwareと`main.py`を2台へfull flashします。
+初回は`--force`を付け、カスタムファームウェアと`main.py`を2台へ完全書き込みします。
 
 ```sh
 mbremote run examples/magic-circle/main.py --config config/setting.json --force
@@ -106,18 +106,18 @@ mbremote run examples/magic-circle/main.py --config config/setting.json
 設定ファイルを使わない場合は、オプションをワンライナーで指定します。
 
 ```sh
-mbremote run examples/magic-circle/main.py --all --no-shared --board v2 --firmware firmware/microbit-micropython-v2-magic-circle.hex --force
+mbremote run examples/magic-circle/main.py --all --no-shared --board v2 --base-firmware firmware/microbit-micropython-v2-magic-circle.hex --force
 ```
 
 ### `setting.json`の設定
 
-`mbremote`では、設定ファイルを`--config FILE`で指定できます。`--all`、`--no-shared`、`--board v2`、`--firmware`は、次のように設定できます。
+`mbremote`では、設定ファイルを`--config FILE`で指定できます。`--all`、`--no-shared`、`--board v2`、`--base-firmware`は、次のように設定できます。
 
 ```json
 {
   "all": true,
   "shared": false,
   "board": "v2",
-  "firmware": "firmware/microbit-micropython-v2-magic-circle.hex"
+  "base_firmware": "firmware/microbit-micropython-v2-magic-circle.hex"
 }
 ```

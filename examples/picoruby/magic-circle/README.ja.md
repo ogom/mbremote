@@ -63,7 +63,7 @@ MicroPython版`examples/magic-circle`のゲーム仕様、無線同期、勝敗�
 | 学習済みモデル | `data/model.json`                                                                |
 | 信頼度しきい値 | `pose`・`side`・`circle`: 0.80、`up`・`down`: 0.90（`scripts/model-config.mjs`） |
 
-学習済みの重みはML4FでCortex-M4F向け機械語に変換し、firmwareへ組み込みます。
+学習済みの重みはML4FでCortex-M4F向け機械語に変換し、ファームウェアへ組み込みます。
 `lib/ml_model.rb`はラベル定義とnative APIの呼び出しだけを担当します。
 
 ### 再学習・生成・検証
@@ -77,7 +77,7 @@ npm run generate:ml4f:magic-circle
 npm run verify:ml4f:magic-circle
 ```
 
-`data/model.json`だけを変更した場合は、Rubyメタデータとfirmwareモデルを再生成します。
+`data/model.json`だけを変更した場合は、Rubyメタデータとファームウェアモデルを再生成します。
 
 ```sh
 node examples/picoruby/magic-circle/scripts/generate-ml-model.mjs
@@ -106,13 +106,13 @@ npm run verify:ml4f:magic-circle
 1台で練習する場合:
 
 ```sh
-mbremote run examples/picoruby/magic-circle --language ruby --board v2 --force
+mbremote run examples/picoruby/magic-circle --language picoruby --board v2 --force
 ```
 
 2台へ同じプログラムを書き込む場合:
 
 ```sh
-mbremote run examples/picoruby/magic-circle --language ruby --board v2 --all --force
+mbremote run examples/picoruby/magic-circle --language picoruby --board v2 --all --force
 ```
 
 無線はグループ43、チャンネル7、出力6を使用します。シリアルには状態遷移、認識した動作、通信、完成時間、勝敗を表示します。
