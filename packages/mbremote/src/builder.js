@@ -26,7 +26,7 @@ export async function buildHex({
 } = {}) {
   const source = await resolveInput(input, cwd, { language });
   const resolvedLanguage = await resolveLanguage(source, language);
-  if (resolvedLanguage === "ruby") {
+  if (resolvedLanguage === "picoruby") {
     return buildPicoRubyHex({
       source,
       output,
@@ -77,8 +77,18 @@ export async function buildHex({
     outputPath,
     files: files.map(({ target }) => target),
     firmware,
-    language: "python",
+    language: "micropython",
   };
+}
+
+export async function cleanBuild({
+  cwd = process.cwd(),
+  log = console.log,
+} = {}) {
+  const buildDirectory = path.resolve(cwd, "build");
+  await fs.rm(buildDirectory, { recursive: true, force: true });
+  log(`cleaned: ${buildDirectory}`);
+  return { buildDirectory };
 }
 
 export async function resolveInput(
@@ -90,9 +100,9 @@ export async function resolveInput(
     return path.resolve(cwd, input);
   }
   const candidates =
-    language === "ruby"
+    language === "picoruby"
       ? ["src", "main.rb", "examples"]
-      : language === "python"
+      : language === "micropython"
         ? ["src", "main.py", "examples"]
         : ["src", "main.py", "main.rb", "examples"];
   for (const candidate of candidates) {
@@ -115,19 +125,19 @@ export async function resolveLanguage(sourcePath, requestedLanguage) {
   let detected;
   if (stat.isFile()) {
     const extension = path.extname(sourcePath).toLowerCase();
-    if (extension === ".py") detected = "python";
-    if (extension === ".rb") detected = "ruby";
+    if (extension === ".py") detected = "micropython";
+    if (extension === ".rb") detected = "picoruby";
   } else if (stat.isDirectory()) {
     const hasPython = await exists(path.join(sourcePath, "main.py"));
     const hasRuby = await exists(path.join(sourcePath, "main.rb"));
     if (hasPython && hasRuby && !requestedLanguage) {
       throw new Error(
-        `${sourcePath} contains both main.py and main.rb; pass --language python or ruby`
+        `${sourcePath} contains both main.py and main.rb; pass --language micropython or picoruby`
       );
     }
-    if (hasPython) detected = "python";
-    if (hasRuby && (!hasPython || requestedLanguage === "ruby")) {
-      detected = "ruby";
+    if (hasPython) detected = "micropython";
+    if (hasRuby && (!hasPython || requestedLanguage === "picoruby")) {
+      detected = "picoruby";
     }
   }
 
@@ -300,9 +310,9 @@ async function isUsableDefaultInput(filename, language) {
   const stat = await fs.stat(filename).catch(() => undefined);
   if (!stat) return false;
   const entryPoints =
-    language === "ruby"
+    language === "picoruby"
       ? ["main.rb"]
-      : language === "python"
+      : language === "micropython"
         ? ["main.py"]
         : ["main.py", "main.rb"];
   if (stat.isFile()) return entryPoints.includes(path.basename(filename));

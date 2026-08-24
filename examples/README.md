@@ -53,7 +53,7 @@ mbremote build examples/begin --shared examples/shared
 
 ```sh
 npm run build:firmware:magic-circle
-mbremote run examples/magic-circle/main.py --all --no-shared --board v2 --firmware firmware/microbit-micropython-v2-magic-circle.hex --force
+mbremote run examples/magic-circle/main.py --all --no-shared --board v2 --base-firmware firmware/microbit-micropython-v2-magic-circle.hex --force
 ```
 
 See the [root README](../README.md) for the full CLI guide.

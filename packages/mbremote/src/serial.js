@@ -77,7 +77,7 @@ export async function findMicrobitPort(explicitPort) {
   );
 }
 
-export async function waitForMicrobitPort({ port, timeout = 15000 } = {}) {
+export async function waitForMicrobitPort({ port, timeout = 10000 } = {}) {
   if (port) {
     return port;
   }
@@ -161,7 +161,7 @@ export async function interactiveSerial({
   });
 }
 
-export async function remoteLs({ path, baudRate = 115200, timeout = 5000 }) {
+export async function remoteLs({ path, baudRate = 115200, timeout = 10000 }) {
   const port = await openPort(path, baudRate);
   let replReady = false;
   try {

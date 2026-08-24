@@ -14,7 +14,7 @@ These PicoRuby (FemtoRuby) examples target the micro:bit V2. Run commands from t
 Ruby code is linked into the firmware, so use `--force` when flashing a board.
 
 ```sh
-mbremote run examples/picoruby/begin --language ruby --board v2 --force
+mbremote run examples/picoruby/begin --language picoruby --board v2 --force
 ```
 
 ## Remaining work for experimental support

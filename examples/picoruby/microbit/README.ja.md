@@ -3,7 +3,7 @@
 FemtoRubyからmicro:bit V2のLED、A/Bボタン、ロゴタッチ、加速度センサーを使用するサンプルです。
 
 ```sh
-mbremote run examples/picoruby/microbit --language ruby --board v2 --force
+mbremote run examples/picoruby/microbit --language picoruby --board v2 --force
 ```
 
 Aボタンを押すと左矢印、Bボタンを押すと右矢印、ロゴをタッチするとひし形を表示します。加速度のXYZ値（milli-g）はシリアルモニターへ出力されます。

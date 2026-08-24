@@ -100,13 +100,13 @@ The implementation uses the following techniques to minimize the delay between a
 One board for practice:
 
 ```sh
-mbremote run examples/picoruby/magic-circle --language ruby --board v2 --force
+mbremote run examples/picoruby/magic-circle --language picoruby --board v2 --force
 ```
 
 The same program on two boards:
 
 ```sh
-mbremote run examples/picoruby/magic-circle --language ruby --board v2 --all --force
+mbremote run examples/picoruby/magic-circle --language picoruby --board v2 --all --force
 ```
 
 Radio uses group 43, channel 7, and power 6. The serial log reports state changes, recognized motions, radio traffic, completion times, and outcomes.

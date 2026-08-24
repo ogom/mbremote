@@ -5,7 +5,7 @@ const COMMANDS = new Set([
   "setup",
   "repl",
   "monitor",
-  "ls",
+  "fs",
   "ports",
 ]);
 
@@ -14,9 +14,8 @@ const VALUE_OPTIONS = new Map([
   ["--port", "port"],
   ["--mount", "mount"],
   ["--shared", "shared"],
+  ["--base-firmware", "baseFirmware"],
   ["--firmware", "firmware"],
-  ["--output", "output"],
-  ["-o", "output"],
   ["--board", "board"],
   ["--language", "language"],
   ["--baud", "baud"],
@@ -26,7 +25,7 @@ const VALUE_OPTIONS = new Map([
 const DEFAULT_OPTIONS = {
   board: "universal",
   baud: 115200,
-  timeout: 15000,
+  timeout: 10,
   monitor: true,
   massStorage: false,
   all: false,
@@ -102,11 +101,11 @@ export function parseArgs(argv, defaults = {}) {
   if (!["universal", "v1", "v2"].includes(options.board)) {
     throw new Error("--board must be universal, v1, or v2");
   }
-  if (options.language && !["python", "ruby"].includes(options.language)) {
-    throw new Error("--language must be python or ruby");
+  if (options.language && !["micropython", "picoruby"].includes(options.language)) {
+    throw new Error("--language must be micropython or picoruby");
   }
   options.baud = positiveInteger(options.baud, "--baud");
-  options.timeout = positiveInteger(options.timeout, "--timeout");
+  options.timeout = secondsToMilliseconds(options.timeout, "--timeout");
 
   return { command, options, positionals };
 }
@@ -119,16 +118,25 @@ function positiveInteger(value, option) {
   return number;
 }
 
+function secondsToMilliseconds(value, option) {
+  const seconds = positiveInteger(value, option);
+  if (seconds > Number.MAX_SAFE_INTEGER / 1000) {
+    throw new Error(`${option} must be a positive integer`);
+  }
+  return seconds * 1000;
+}
+
 export const helpText = `mbremote - mpremote-style tools for the BBC micro:bit
 
 Usage:
-  mbremote build [FILE|DIR] [-o FILE] [--language python|ruby] [--board universal|v1|v2] [--firmware HEX] [--shared DIR|--no-shared]
-  mbremote flash [HEX] [--port PORT] [--all] [--force] [--mass-storage] [--mount DIR]
-  mbremote run [FILE|DIR] [--port PORT|--all] [--language python|ruby] [--board universal|v1|v2] [--firmware HEX] [--shared DIR|--no-shared] [--force] [--mass-storage] [--mount DIR] [--no-monitor]
+  mbremote build [FILE|DIR] [--firmware HEX] [--language micropython|picoruby] [--board universal|v1|v2] [--base-firmware HEX] [--shared DIR|--no-shared]
+  mbremote build clean
+  mbremote flash [--firmware HEX] [--port PORT] [--all] [--force] [--mass-storage] [--mount DIR]
+  mbremote run [FILE|DIR] [--port PORT|--all] [--firmware HEX] [--language micropython|picoruby] [--board universal|v1|v2] [--base-firmware HEX] [--shared DIR|--no-shared] [--force] [--mass-storage] [--mount DIR] [--no-monitor]
   mbremote setup
   mbremote repl [--port PORT]
   mbremote monitor [--port PORT]
-  mbremote ls [--port PORT]
+  mbremote fs ls [--port PORT]
   mbremote ports
 
 Configuration:
@@ -141,14 +149,14 @@ Options:
   --mass-storage   copy HEX to the mounted MICROBIT drive
   --mount DIR      mounted MICROBIT drive (implies --mass-storage)
   --board BOARD    target universal, v1, or v2 (default: universal)
-  --language LANG  source language: python or ruby (default: detect)
-  --firmware HEX   custom MicroPython firmware (requires --board v1 or v2)
+  --language LANG  source language: micropython or picoruby (default: detect)
+  --base-firmware HEX  base MicroPython firmware (requires --board v1 or v2)
   --shared DIR     directory containing shared Python modules
   --no-shared      do not include automatically configured shared modules
   --port PORT      target micro:bit serial device path
   --baud RATE      serial baud rate (default: 115200)
-  --timeout MS     device wait timeout (default: 15000)
-  -o, --output     HEX output (default: build/microbit.hex)
+  --timeout SEC    device wait timeout in seconds (default: 10)
+  --firmware HEX       built HEX path (default: build/microbit.hex)
   --no-monitor     do not open the monitor after run
   -h, --help       show this help
   -V, --version    show the version

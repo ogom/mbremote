@@ -11,7 +11,7 @@
   "scripts": {
     "setup": "node packages/mbremote/bin/mbremote.js setup",
     "build:firmware:magic-circle": "sh scripts/firmware/build-magic-circle.sh",
-    "build:firmware:picoruby": "node packages/mbremote/bin/mbremote.js build --language ruby --board v2",
+    "build:firmware:picoruby": "node packages/mbremote/bin/mbremote.js build --language picoruby --board v2",
     "mbremote": "node packages/mbremote/bin/mbremote.js",
     "build": "node packages/mbremote/bin/mbremote.js build",
     "flash": "node packages/mbremote/bin/mbremote.js flash",

@@ -84,14 +84,14 @@ The model from `data-samples.json` and `rgb_led.py` are frozen into the custom f
 Connect one micro:bit and run without `--all` to open the serial monitor after flashing. It displays debug logs for state changes, motion recognition and confidence, magic-circle completion time, radio traffic, and game results.
 
 ```sh
-mbremote run examples/magic-circle/main.py --no-shared --board v2 --firmware firmware/microbit-micropython-v2-magic-circle.hex
+mbremote run examples/magic-circle/main.py --no-shared --board v2 --base-firmware firmware/microbit-micropython-v2-magic-circle.hex
 ```
 
 Exit the monitor with `Ctrl-]`. To disable logging, set `DEBUG` to `False` in [main.py](main.py).
 
 ### Flash the program
 
-For the first installation, use `--force` to full-flash the custom firmware and `main.py` to two boards.
+For the first installation, use `--force` to perform a full flash of the custom firmware and `main.py` to two boards.
 
 ```sh
 mbremote run examples/magic-circle/main.py --config config/setting.json --force
@@ -106,18 +106,18 @@ mbremote run examples/magic-circle/main.py --config config/setting.json
 Without a configuration file, provide the options directly:
 
 ```sh
-mbremote run examples/magic-circle/main.py --all --no-shared --board v2 --firmware firmware/microbit-micropython-v2-magic-circle.hex --force
+mbremote run examples/magic-circle/main.py --all --no-shared --board v2 --base-firmware firmware/microbit-micropython-v2-magic-circle.hex --force
 ```
 
 ### Configure `setting.json`
 
-mbremote accepts a configuration file through `--config FILE`. Set `--all`, `--no-shared`, `--board v2`, and `--firmware` as follows:
+mbremote accepts a configuration file through `--config FILE`. Set `--all`, `--no-shared`, `--board v2`, and `--base-firmware` as follows:
 
 ```json
 {
   "all": true,
   "shared": false,
   "board": "v2",
-  "firmware": "firmware/microbit-micropython-v2-magic-circle.hex"
+  "base_firmware": "firmware/microbit-micropython-v2-magic-circle.hex"
 }
 ```

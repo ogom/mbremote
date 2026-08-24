@@ -1,20 +1,11 @@
-# mbremote Commands
+# mbremote commands
 
-## Contents
+Run commands from the project root. For the authoritative installed syntax,
+run `mbremote --help`.
 
-- [Set up the development version](#set-up-the-development-version)
-- [Install the npm version](#install-the-npm-version)
-- [Build](#build)
-- [Build PicoRuby firmware](#build-picoruby-firmware)
-- [Flash](#flash)
-- [Build and run](#build-and-run)
-- [Serial monitor and REPL](#serial-monitor-and-repl)
-- [Common options](#common-options)
-- [Validate the CLI](#validate-the-cli)
+## Set up the development CLI
 
-Run every command from the project root.
-
-## Set up the development version
+Use this in the mbremote source repository:
 
 ```sh
 npm install
@@ -22,145 +13,117 @@ npm run setup
 npm link --workspace mbremote
 ```
 
-## Install the npm version
-
-Run this only after confirming that the package has been published to npm. Use the development version before publication.
-
-```sh
-npm install --global mbremote
-mbremote setup
-mbremote --version
-```
-
-Both `npm run setup` in the CLI source repository and `mbremote setup` in an
-npm project download the official firmware and create an empty
-`config/setting.json` when it is missing. They do not overwrite an existing
-configuration file.
+For a published npm installation, run `mbremote setup` in each project before
+the first MicroPython build. It downloads official base firmware and creates an
+empty `config/setting.json` without replacing an existing file.
 
 ## Build
 
 ```sh
-mbremote build [FILE|DIR] [-o FILE] [--board universal|v1|v2] [--firmware HEX] [--shared DIR|--no-shared]
+mbremote build [FILE|DIR] [--firmware HEX] \
+  [--language micropython|picoruby] [--board universal|v1|v2] \
+  [--base-firmware HEX] [--shared DIR|--no-shared]
+mbremote build clean
 ```
-
-Examples:
 
 ```sh
 mbremote build examples/begin
-mbremote build examples/begin/main.py
-mbremote build examples/rps-radio -o build/rps-radio.hex --no-shared
-mbremote build examples/rps-radio --board v2 --no-shared
+mbremote build examples/rps-radio --firmware build/rps-radio.hex --no-shared
 mbremote build examples/begin --shared examples/shared
-mbremote build examples/rps-radio/main.py --board v2 --firmware firmware/microbit-micropython-v2.hex --no-shared
+mbremote build examples/magic-circle/main.py --board v2 \
+  --base-firmware firmware/microbit-micropython-v2.hex --no-shared
 ```
 
-`--firmware`, `--shared`, and `--no-shared` are MicroPython options.
+`--firmware` names the generated HEX. `--base-firmware` selects a custom base
+MicroPython HEX and requires `--board v1` or `--board v2`.
 
 ## Build PicoRuby firmware
 
-PicoRuby/FemtoRuby support is experimental and targets micro:bit V2 only.
+PicoRuby targets micro:bit V2 only.
 
 ```sh
-mbremote build [FILE|DIR] --language ruby --board v2 [-o FILE]
+mbremote build examples/picoruby/begin --language picoruby --board v2
+mbremote run examples/picoruby/led-rover --language picoruby --board v2 \
+  --force --no-monitor
 ```
 
-```sh
-mbremote build examples/picoruby/begin --language ruby --board v2
-mbremote build examples/picoruby/magic-circle --language ruby --board v2
-mbremote run examples/picoruby/led-rover --language ruby --board v2 --force --no-monitor
-mbremote run examples/picoruby/magic-circle --language ruby --board v2 --all --force
-```
-
-A PicoRuby directory must contain `main.rb`. All `.rb` files under the directory are compiled into the firmware in lexical path order, with `main.rb` evaluated last. The first build compiles and caches PicoRuby, CODAL, and toolchain artifacts, so it takes longer than later builds. PicoRuby source is linked into firmware; use `--force` when flashing changed Ruby code.
+A PicoRuby directory requires `main.rb`. Ruby files are collected in lexical
+path order and `main.rb` runs last. PicoRuby source is compiled into firmware,
+so use `--force` after changing it. `--base-firmware`, `--shared`, and
+`--no-shared` do not apply to PicoRuby.
 
 ## Flash
 
 ```sh
-mbremote flash [HEX] [--port PORT] [--all] [--force] [--mass-storage] [--mount DIR]
+mbremote flash [--firmware HEX] [--port PORT] [--all] [--force] \
+  [--mass-storage] [--mount DIR]
 ```
 
-Examples:
-
 ```sh
-# Flash build/microbit.hex through DAPLink USB with automatic partial/full selection.
+# Flash build/microbit.hex through DAPLink USB.
 mbremote flash
 
-# Flash a specific HEX.
-mbremote flash build/rps-radio.hex
+# Flash a specific HEX. A positional HEX argument is not supported.
+mbremote flash --firmware build/rps-radio.hex
 
 # Force a DAPLink USB full flash.
 mbremote flash --force
 
-# Flash through the MICROBIT drive.
+# Flash through the MICROBIT volume.
 mbremote flash --mass-storage
 mbremote flash --mount /Volumes/MICROBIT
-
-# Flash the same HEX to every detected micro:bit.
-mbremote flash --all
-mbremote flash --all --mass-storage
 ```
 
 ## Build and run
 
 ```sh
-mbremote run [FILE|DIR] [--port PORT|--all] [--board universal|v1|v2] [--firmware HEX] [--shared DIR|--no-shared] [--force] [--mass-storage] [--mount DIR] [--no-monitor]
+mbremote run [FILE|DIR] [--port PORT|--all] [--firmware HEX] \
+  [--language micropython|picoruby] [--board universal|v1|v2] \
+  [--base-firmware HEX] [--shared DIR|--no-shared] [--force] \
+  [--mass-storage] [--mount DIR] [--no-monitor]
 ```
 
 ```sh
-# Build, flash, and open the serial monitor.
 mbremote run examples/begin/main.py
-
-# Build and flash only.
 mbremote run examples/begin/main.py --no-monitor
-
-# Build and flash every detected micro:bit.
 mbremote run examples/rps-radio --all
 ```
 
-`run --all` exits without opening a serial monitor.
+`run --all` does not open a serial monitor.
 
-## Serial monitor and REPL
+## Serial and filesystem commands
 
 ```sh
 mbremote ports
 mbremote monitor [--port PORT]
 mbremote repl [--port PORT]
-mbremote ls [--port PORT]
+mbremote fs ls [--port PORT]
 ```
 
-```sh
-mbremote monitor --port /dev/cu.usbmodem1101
-mbremote repl --port /dev/cu.usbmodem1101
-mbremote ls --port /dev/cu.usbmodem1101
-```
-
-Exit `repl` and `monitor` with `Ctrl-]`.
-
-`repl` and `ls` require MicroPython. PicoRuby does not provide a REPL; `monitor` can still show serial output from a PicoRuby program.
+`repl` is MicroPython-only. PicoRuby has no REPL, but `monitor` displays its
+serial output. Exit `monitor` and `repl` with `Ctrl-]`.
 
 ## Common options
 
 | Option | Purpose |
-|---|---|
-| `--config FILE` | Use a configuration file other than the default `config/setting.json`. |
-| `--force` | Override automatic selection and force a DAPLink USB full flash. |
-| `--mass-storage` | Copy through the MICROBIT drive. |
-| `--all` | Flash the same HEX to every detected micro:bit. |
-| `--mount DIR` | Specify a mount point and use mass-storage flashing. |
-| `--firmware HEX` | Use custom MicroPython HEX together with `--board v1` or `--board v2`; not supported for PicoRuby. |
-| `--shared DIR` | Specify the directory of shared Python modules for `build` or `run`; not used by PicoRuby. |
-| `--no-shared` | Do not include shared Python modules for `build` or `run`; not used by PicoRuby. |
-| `--port PORT` | Specify a serial port. |
-| `--baud RATE` | Set the baud rate; the default is 115200. |
-| `--timeout MS` | Set the device wait time; the default is 15000 ms. |
-| `-o, --output FILE` | Specify the HEX output path. |
-| `--no-monitor` | Do not open a monitor after `run`. |
+| --- | --- |
+| `--config FILE` | Select a configuration file instead of `config/setting.json`. |
+| `--firmware HEX` | Generated HEX for `build`/`run`, or input HEX for `flash`. |
+| `--base-firmware HEX` | Board-specific MicroPython base HEX for `build`/`run`. |
+| `--board BOARD` | `universal`, `v1`, or `v2`; default: `universal`. |
+| `--language LANG` | `micropython` or `picoruby`; default: detect. |
+| `--timeout SEC` | Device wait timeout in seconds; default: `10`. |
+| `--force` | Force a DAPLink USB full flash. |
+| `--mass-storage` | Copy through a mounted MICROBIT volume. |
+| `--mount DIR` | Set the volume and select mass-storage flashing. |
+| `--all` | Flash every detected board; requires at least two. |
+| `--no-monitor` | Do not open the monitor after `run`. |
 
 ## Validate the CLI
 
 ```sh
 npm test
-npm --workspace mbremote run test:picoruby-firmware
+npm run test:picoruby-firmware --workspace mbremote
 mbremote --help
 mbremote build examples/begin
 ```

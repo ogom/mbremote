@@ -1,37 +1,17 @@
-# mbremote Development Examples
+# mbremote development examples
 
-## Contents
+Check the target project configuration before running a command. Build without
+flashing unless the user asked for hardware execution.
 
-- [Develop a single file](#develop-a-single-file)
-- [Develop a multi-file project](#develop-a-multi-file-project)
-- [Develop a PicoRuby project](#develop-a-picoruby-project)
-- [View print output](#view-print-output)
-- [Verify interactively with REPL](#verify-interactively-with-repl)
-- [Troubleshoot DAPLink USB flashing](#troubleshoot-daplink-usb-flashing)
-- [Resolve missing firmware](#resolve-missing-firmware)
-- [Use custom firmware](#use-custom-firmware)
-- [Select from multiple micro:bits](#select-from-multiple-microbits)
-- [Change and validate the CLI](#change-and-validate-the-cli)
+## MicroPython projects
 
-Each command uses `config/setting.json` or the file supplied with `--config FILE`. Before running a command, check the target board, firmware, shared modules, and flashing destination.
-
-## Develop a single file
-
-Create or edit `examples/blink.py`, then generate a HEX for the configured target board.
+A single Python file is installed as `main.py`:
 
 ```sh
 mbremote build examples/blink.py
 ```
 
-If flashing hardware was requested:
-
-```sh
-mbremote run examples/blink.py --no-monitor
-```
-
-A single file becomes `main.py` on the device.
-
-## Develop a multi-file project
+A directory project requires `main.py`; direct `.py` files become modules:
 
 ```text
 src/
@@ -45,50 +25,14 @@ mbremote build src
 mbremote run src --no-monitor
 ```
 
-Use `main.py` as the entry point and import modules from the same directory.
+Shared modules are automatically discovered from a project-local or sibling
+`shared/` directory. Use `--shared DIR` to select another location, or
+`--no-shared` to exclude them.
 
-To share modules across projects, place `shared/` beside the projects.
+## PicoRuby projects
 
-```text
-examples/
-├── begin/
-│   └── main.py
-└── shared/
-    ├── rgb_led/
-    │   └── main.py
-    ├── motor/
-    │   └── main.py
-    └── dual_motor/
-        └── main.py
-```
-
-In `main.py`, import each module using its filename without `.py`.
-
-```python
-import rgb_led
-from dual_motor import DualMotor
-from motor import Motor
-```
-
-`shared/rgb_led/main.py` becomes `rgb_led.py` on the device; `shared/motor/main.py` becomes `motor.py`; and `shared/dual_motor/main.py` becomes `dual_motor.py`.
-
-Shared modules are included whether the project directory or `main.py` is specified.
-
-```sh
-mbremote build examples/begin
-mbremote build examples/begin/main.py
-```
-
-To use shared modules from another location, specify a project-root-relative or absolute path.
-
-```sh
-mbremote build examples/begin --shared examples/shared
-mbremote run examples/begin --shared examples/shared --no-monitor
-```
-
-## Develop a PicoRuby project
-
-PicoRuby/FemtoRuby support is experimental and works on micro:bit V2. A directory project needs `main.rb`; all Ruby files below the directory are compiled into the firmware, and `main.rb` runs last.
+A PicoRuby directory requires `main.rb`; `.rb` files under the directory are
+compiled in lexical path order and `main.rb` runs last:
 
 ```text
 src/
@@ -98,121 +42,40 @@ src/
 ```
 
 ```sh
-mbremote build src --language ruby --board v2
-mbremote run src --language ruby --board v2 --force --no-monitor
+mbremote build src --language picoruby --board v2
+mbremote run src --language picoruby --board v2 --force --no-monitor
 ```
 
-Place reusable classes in files that sort before the code which creates them. PicoRuby does not use the MicroPython `shared/` module mechanism or custom `--firmware` images. Its source is linked into firmware, so include `--force` when flashing an updated Ruby program.
+PicoRuby source is linked into firmware. It has no REPL and does not use the
+MicroPython shared-module mechanism or `--base-firmware`.
 
-## View print output
-
-Build and flash, then open the monitor.
-
-```sh
-mbremote run src
-```
-
-If the device is already flashed, open only the monitor.
-
-```sh
-mbremote monitor
-```
-
-Press `Ctrl-]` to exit.
-
-## Verify interactively with REPL
-
-```sh
-mbremote repl
-```
-
-The command sends an interrupt and opens the MicroPython REPL. Press `Ctrl-]` to exit.
-
-PicoRuby does not provide a REPL. Use `mbremote monitor` to inspect its serial output instead.
-
-## Troubleshoot DAPLink USB flashing
-
-First, check the connection.
+## Device checks and troubleshooting
 
 ```sh
 mbremote ports
-mbremote flash
+mbremote fs ls --port /dev/cu.usbmodem1101
+mbremote monitor --port /dev/cu.usbmodem1101
 ```
 
-For `micro:bit is in use by another application`, close applications that use DAPLink USB, such as Python Editor, MakeCode, or browser tabs, then try again.
+- For DAPLink USB errors, close applications using the board, then retry.
+- If only DAPLink USB fails, compare with `mbremote flash --mass-storage`.
+- If a mounted volume is not discovered, use
+  `mbremote flash --mount /Volumes/MICROBIT` and inspect `FAIL.TXT`.
+- If serial auto-detection fails, select the device with `--port`.
+- For missing official base firmware, run `npm run setup` in the CLI source
+  repository or `mbremote setup` in an npm project.
 
-If only DAPLink USB fails, compare it with mass-storage flashing.
+## Custom base firmware
 
-```sh
-mbremote flash --mass-storage
-```
-
-If Finder shows `MICROBIT` but automatic detection fails:
-
-```sh
-mbremote flash --mount /Volumes/MICROBIT
-```
-
-To flash the same HEX to two or more micro:bits with DAPLink USB:
-
-```sh
-mbremote flash --all
-```
-
-To build and flash two or more micro:bits with DAPLink USB:
-
-```sh
-mbremote run examples/rps-radio --all
-```
-
-`run --all` exits without opening a monitor after flashing multiple devices.
-
-To use mass storage for two or more devices:
-
-```sh
-mbremote flash --all --mass-storage
-```
-
-## Resolve missing firmware
-
-When official V1/V2 firmware is missing, run the following in the CLI source repository.
-
-```sh
-npm run setup
-mbremote build examples/begin
-```
-
-With the npm version, run `mbremote setup`.
-
-Custom firmware supplied with `--firmware HEX` is not generated by `npm run setup`. Use the project's generation procedure; for magic-circle, run `npm run build:firmware:magic-circle`.
-
-## Use custom firmware
-
-Custom MicroPython HEX must target a specific board generation. Use a full flash on first installation and whenever the firmware changes.
+Custom MicroPython base firmware must target a specific board. Use a full
+flash on first installation and whenever the base firmware changes:
 
 ```sh
 npm run build:firmware:magic-circle
-mbremote run examples/magic-circle/main.py --board v2 --firmware firmware/microbit-micropython-v2-magic-circle.hex --no-shared --force --no-monitor
+mbremote run examples/magic-circle/main.py --board v2 \
+  --base-firmware firmware/microbit-micropython-v2-magic-circle.hex \
+  --no-shared --force --no-monitor
 ```
 
-After the first installation, remove `--force` when the firmware has not changed to restore automatic partial/full selection. Use `--no-shared` or `"shared": false` so modules frozen into the firmware are not also stored in the file system.
-
-## Select from multiple micro:bits
-
-```sh
-mbremote ports
-mbremote run examples/begin/main.py --port /dev/cu.usbmodem1101 --no-monitor
-```
-
-With `--port`, mbremote selects as the DAPLink USB target the micro:bit whose DAPLink serial number matches the port. If no target is found, it errors rather than flashing another micro:bit.
-
-## Change and validate the CLI
-
-```sh
-npm test
-npm --workspace mbremote run test:picoruby-firmware
-mbremote --help
-mbremote build examples/begin
-```
-
-Only after changing flash implementation, confirm that hardware flashing is in scope before running `mbremote flash`.
+After the first installation, omit `--force` if the base firmware is unchanged
+to allow automatic partial flashing.

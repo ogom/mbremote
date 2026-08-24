@@ -1,73 +1,64 @@
 ---
 name: mb-remote-dev
-description: Develop BBC micro:bit MicroPython and experimental PicoRuby/FemtoRuby programs with the npm or workspace version of mbremote, including builds, firmware setup, flashing, serial monitoring, REPL access, and connection troubleshooting.
+description: Develop, build, flash, and troubleshoot BBC micro:bit MicroPython or PicoRuby projects with mbremote. Use for mbremote CLI workflows and project configuration, not generic Python or Ruby work.
 ---
 
-# micro:bit Development with mbremote
+# micro:bit development with mbremote
 
-Use the npm or repository-workspace version of `mbremote` to develop and verify MicroPython code for micro:bit V1 and V2, or experimental PicoRuby/FemtoRuby code for micro:bit V2.
+Use the npm or repository-workspace version of `mbremote` for MicroPython
+projects on micro:bit V1/V2 and experimental PicoRuby projects on micro:bit
+V2.
 
-## Establish the workspace
+## Establish the project
 
-- If `packages/mbremote/` exists, treat the repository as the CLI source repository; otherwise, treat it as the user's micro:bit project.
-- Run commands from the project root unless there is a reason not to.
-- Start by checking `README.md`, `package.json`, and the target Python or Ruby files.
-- When the CLI behavior is uncertain, check the current behavior with `mbremote --help`.
-- Read [references/command.md](references/command.md) for CLI syntax and options.
-- Read [references/config.md](references/config.md) for `setting.json` options, precedence, and examples.
-- Read [references/examples.md](references/examples.md) for development workflows and troubleshooting examples.
+- If `packages/mbremote/` exists, this is the CLI source repository; otherwise
+  treat it as a micro:bit project using the published CLI.
+- Work from the project root. Inspect `README.md`, `package.json`, the target
+  source files, and `config/setting.json` before changing code or running a
+  device command.
+- Use `mbremote --help` when the installed CLI behavior may differ from this
+  skill.
+- Read [references/command.md](references/command.md) for command syntax and
+  [references/config.md](references/config.md) when configuration affects the
+  task. Read [references/examples.md](references/examples.md) for project
+  layouts, device verification, or troubleshooting.
 
-## Development workflow
+## Build and run
 
-1. Review the request and existing code.
-2. Check `config/setting.json` or the file supplied with `--config FILE`, and identify settings overridden by CLI options.
-3. Check `mbremote --version`. If the command is unavailable in the CLI source repository, run `npm install`, `npm run setup`, and `npm link --workspace mbremote`.
-4. Install the npm package with `npm install --global mbremote` only after confirming it has been published. Do not assume the npm version is available before publication; use the workspace version instead. After installing the npm package, run `mbremote setup` from the project root.
-5. In the CLI source repository, run `npm run setup` when the official firmware is missing.
-6. For MicroPython, edit any `.py` file for a single-file project; multi-file projects require `main.py` directly in the project directory. For PicoRuby, a directory project requires `main.rb`; all `.rb` files below it are compiled into the firmware, with `main.rb` evaluated last.
-7. Preserve the language's existing style and use only APIs available in the target runtime.
-8. Generate a MicroPython HEX with `mbremote build <FILE|DIR> [--shared DIR|--no-shared]`. For custom MicroPython, also provide `--board v1|v2 --firmware HEX`. Generate a PicoRuby HEX with `mbremote build <FILE|DIR> --language ruby --board v2`.
-9. Run `npm test` after changing CLI source code. After changing PicoRuby support, also run `npm --workspace mbremote run test:picoruby-firmware`. Confirm that the relevant build succeeds at minimum.
-10. Flash hardware only when the request includes it. For non-interactive work, prefer `--no-monitor` to avoid opening a serial monitor.
-11. Report the result, flashing method, and any unverified items concisely.
+- Use `micropython` or `picoruby` for `--language`; source detection is the
+  default. A MicroPython directory needs `main.py`; a PicoRuby directory needs
+  `main.rb`.
+- `--firmware` names the generated HEX for `build` and `run`, and the HEX
+  passed to `flash`. `--base-firmware` selects a board-specific MicroPython
+  base HEX. Do not treat them as aliases.
+- Build a custom-base MicroPython project with `--board v1|v2
+  --base-firmware HEX`. PicoRuby supports V2 only and does not accept
+  `--base-firmware`, `--shared`, or `--no-shared`.
+- Use `mbremote fs ls` for remote file listing. `mbremote ls` is not a command.
+- `timeout` values from the CLI and configuration are whole seconds; the
+  default is 10 seconds.
 
-## Preserve source layout rules
+## Hardware safety
 
-- A single Python file is stored on the device as `main.py`.
-- When a directory is specified, only `.py` files directly inside it are included; subdirectories are excluded.
-- A directory project must contain `main.py`.
-- Shared modules are discovered automatically from a `shared/` directory at the project root or beside it. Direct `.py` files and `main.py` files in child directories are included. A child `main.py` is stored on the device as `<child-directory>.py`. Use `--shared DIR` to select another location, or `--no-shared` to disable discovery.
-- When no input is specified, search in this order: `src/`, root `main.py`, then `examples/`.
-- Normally generate a Universal HEX that supports V1 and V2. Use `--board v1` or `--board v2` only when there is a reason to target one board.
-- Custom firmware must target `--board v1` or `--board v2`. Use `--force` for a full flash on first installation and whenever the firmware changes.
-- PicoRuby/FemtoRuby is experimental and supports micro:bit V2 only. It builds PicoRuby source, CODAL, and the Ruby program into one firmware image; `--firmware`, `--shared`, and `--no-shared` do not apply.
-- PicoRuby directory projects must contain `main.rb`. All `.rb` files in the directory tree are collected in lexical path order, and `main.rb` runs last. Keep definitions in files that sort before their users, or use the project's established `lib/` layout.
-- PicoRuby program changes are linked into the firmware, so use `--force` when flashing with `mbremote run`.
+- Build only unless the user requests a hardware action. `run` builds and
+  flashes, so do not use it for a static build check.
+- Before flashing, identify the intended HEX and device. Use `--port` when
+  multiple boards are connected.
+- `--force` performs a DAPLink USB full flash. Use it for the initial PicoRuby
+  flash and whenever its firmware changes; otherwise allow automatic partial
+  or full flashing.
+- Use `--mass-storage` or `--mount /Volumes/MICROBIT` when DAPLink USB is
+  unavailable. Do not combine `--force` with mass-storage flashing.
+- A single-target `run` opens the serial monitor by default. Use `--no-monitor`
+  for a non-interactive device run. `run --all` does not open a monitor.
 
-## Choose a flashing method
+## Verification and failures
 
-- Use `mbremote flash` by default. It prefers DAPLink USB partial flashing through `@microbit/microbit-connection`.
-- Use `--force` only when automatic detection must be overridden to force a DAPLink USB full flash.
-- Use `--mass-storage` if DAPLink USB fails because the device is in use, permissions are insufficient, or DAPLink is old.
-- On macOS, use `--mount /Volumes/MICROBIT` to specify a mount point. This implicitly selects mass-storage flashing.
-- To build and flash every connected micro:bit, use `mbremote run <FILE|DIR> --all`. To flash an existing HEX, use `mbremote flash --all`. For mass storage, add `--all --mass-storage`.
-- When multiple serial ports are detected, use `--port` to select the target explicitly.
-
-## Handle physical devices safely
-
-- If the user did not request flashing or hardware execution, stop after building.
-- Confirm the input and output HEX before flashing.
-- `run` builds and flashes, so do not use it for a static check alone.
-- Single-target `run` opens a serial monitor by default. `run --all` flashes multiple boards and exits without opening one. In other non-interactive cases, add `--no-monitor`.
-- The REPL is available only for MicroPython. PicoRuby has no REPL; use `monitor` only for serial output. Exit `repl` and `monitor` with `Ctrl-]`. Run long-lived monitoring only when explicitly requested.
-
-## Troubleshoot failures
-
-1. Check the connection with `mbremote ports`.
-2. For missing official firmware, run `npm run setup` in the CLI source repository or `mbremote setup` with the npm package. For missing custom firmware, follow the project-specific generation or retrieval procedure.
-3. For a DAPLink USB `device-in-use` error, close applications that use DAPLink, such as Python Editor.
-4. If only DAPLink USB flashing fails, compare it with `--mass-storage`.
-5. For mass-storage failures, inspect `/Volumes/MICROBIT` and `FAIL.TXT`.
-6. If only serial auto-detection fails, specify `--port /dev/cu.usbmodem...`.
-7. After a fix, rerun the command that failed and `npm test`.
-8. For a PicoRuby build failure, check that Git, CMake, the Arm GNU Toolchain, and Ruby are available. The first build compiles and caches the runtime dependencies, so it takes longer than later builds.
+- In the CLI source repository, run `npm test` after changing CLI code. Run
+  `npm run test:picoruby-firmware --workspace mbremote` when PicoRuby build
+  support changes and its required toolchain is available.
+- For missing official base firmware, run `npm run setup` in the CLI source
+  repository or `mbremote setup` in a project using the npm package.
+- For device failures, check `mbremote ports`, then retry with an explicit
+  `--port` or mass-storage flashing as appropriate. Inspect `FAIL.TXT` for a
+  mounted MICROBIT volume.

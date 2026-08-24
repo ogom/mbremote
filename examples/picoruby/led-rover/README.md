@@ -52,5 +52,5 @@ Do not power the motors or NeoPixels directly from the micro:bit. Use a suitable
 ## Flashing
 
 ```sh
-mbremote run examples/picoruby/led-rover --language ruby --board v2 --all --force
+mbremote run examples/picoruby/led-rover --language picoruby --board v2 --all --force
 ```

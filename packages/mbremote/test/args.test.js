@@ -11,7 +11,7 @@ test("parses run input and serial options", () => {
       options: {
         board: "universal",
         baud: 115200,
-        timeout: 15000,
+        timeout: 10000,
         monitor: true,
         massStorage: false,
         all: false,
@@ -23,15 +23,44 @@ test("parses run input and serial options", () => {
   );
 });
 
+test("converts the timeout option from seconds to milliseconds", () => {
+  const result = parseArgs(["run", "examples/main.py", "--timeout", "2"]);
+  assert.equal(result.options.timeout, 2000);
+});
+
+test("converts a configured timeout from seconds to milliseconds", () => {
+  const result = parseArgs(["run", "examples/main.py"], { timeout: 2 });
+  assert.equal(result.options.timeout, 2000);
+});
+
 test("parses forced full flash option", () => {
-  const result = parseArgs(["flash", "firmware.hex", "--force"]);
+  const result = parseArgs(["flash", "--firmware", "firmware.hex", "--force"]);
   assert.equal(result.options.force, true);
   assert.equal(result.options.massStorage, false);
+  assert.equal(result.options.firmware, "firmware.hex");
+});
+
+test("parses build clean", () => {
+  const result = parseArgs(["build", "clean"]);
+  assert.equal(result.command, "build");
+  assert.deepEqual(result.positionals, ["clean"]);
+});
+
+test("parses fs ls", () => {
+  const result = parseArgs(["fs", "ls", "--port", "/dev/test"]);
+  assert.equal(result.command, "fs");
+  assert.deepEqual(result.positionals, ["ls"]);
+  assert.equal(result.options.port, "/dev/test");
+});
+
+test("rejects the former top-level ls command", () => {
+  assert.throws(() => parseArgs(["ls"]), /unknown command: ls/);
 });
 
 test("parses mass-storage fallback options", () => {
   const result = parseArgs([
     "flash",
+    "--firmware",
     "firmware.hex",
     "--mass-storage",
     "--mount",
@@ -42,7 +71,7 @@ test("parses mass-storage fallback options", () => {
 });
 
 test("parses all-device flash option", () => {
-  const result = parseArgs(["flash", "firmware.hex", "--all"]);
+  const result = parseArgs(["flash", "--firmware", "firmware.hex", "--all"]);
   assert.equal(result.options.all, true);
 });
 
@@ -66,18 +95,18 @@ test("parses the PicoRuby language for a V2 build", () => {
     "build",
     "examples/picoruby/begin",
     "--language",
-    "ruby",
+    "picoruby",
     "--board",
     "v2",
   ]);
-  assert.equal(result.options.language, "ruby");
+  assert.equal(result.options.language, "picoruby");
   assert.equal(result.options.board, "v2");
 });
 
 test("rejects unknown source languages", () => {
   assert.throws(
     () => parseArgs(["build", "main.rb", "--language", "javascript"]),
-    /--language must be python or ruby/
+    /--language must be micropython or picoruby/
   );
 });
 
@@ -116,11 +145,21 @@ test("parses custom firmware for a board-specific build", () => {
     "examples/magic-circle/main.py",
     "--board",
     "v2",
-    "--firmware",
+    "--base-firmware",
     "firmware/magic-circle-v2.hex",
   ]);
   assert.equal(result.options.board, "v2");
-  assert.equal(result.options.firmware, "firmware/magic-circle-v2.hex");
+  assert.equal(result.options.baseFirmware, "firmware/magic-circle-v2.hex");
+});
+
+test("parses firmware as the build artifact path", () => {
+  const result = parseArgs(["build", "--firmware", "build/custom.hex"]);
+  assert.equal(result.options.firmware, "build/custom.hex");
+});
+
+test("rejects the former output options", () => {
+  assert.throws(() => parseArgs(["build", "--output", "build/custom.hex"]), /unknown option/);
+  assert.throws(() => parseArgs(["build", "-o", "build/custom.hex"]), /unknown option/);
 });
 
 test("validates board names", () => {
