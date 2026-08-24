@@ -1,8 +1,7 @@
-import path from "node:path";
 import { createRequire } from "node:module";
 
 import { helpText, parseArgs } from "./args.js";
-import { buildHex } from "./builder.js";
+import { buildHex, cleanBuild } from "./builder.js";
 import { loadConfigOptions, setupConfig } from "./config.js";
 import { flashHex, flashHexAll } from "./device.js";
 import { flashHexDirect, flashHexDirectAll } from "./direct-flash.js";
@@ -40,28 +39,32 @@ export async function main(argv, { cwd = process.cwd() } = {}) {
 
   switch (command) {
     case "build":
+      if (positionals[0] === "clean") {
+        await cleanBuild({ cwd });
+        return;
+      }
       await buildHex({
         input: positionals[0],
-        output: options.output,
+        output: options.firmware,
         board: options.board,
         language: options.language,
-        firmware: options.firmware,
+        firmware: options.baseFirmware,
         shared: options.shared,
         cwd,
       });
       return;
     case "flash": {
-      const hex = positionals[0] || options.output || "build/microbit.hex";
+      const hex = options.firmware || "build/microbit.hex";
       await flash(hex, options);
       return;
     }
     case "run": {
       const result = await buildHex({
         input: positionals[0],
-        output: options.output,
+        output: options.firmware,
         board: options.board,
         language: options.language,
-        firmware: options.firmware,
+        firmware: options.baseFirmware,
         shared: options.shared,
         cwd,
       });
@@ -93,7 +96,7 @@ export async function main(argv, { cwd = process.cwd() } = {}) {
       await interactiveSerial({ path: serialPath, baudRate: options.baud });
       return;
     }
-    case "ls": {
+    case "fs": {
       const serialPath = await findMicrobitPort(options.port);
       const files = await remoteLs({
         path: serialPath,
@@ -144,11 +147,11 @@ function assertOptions(command, options) {
   if (options.language && !["build", "run"].includes(command)) {
     throw new Error("--language can only be used with build or run");
   }
-  if (options.firmware && !["build", "run"].includes(command)) {
-    throw new Error("--firmware can only be used with build or run");
+  if (options.baseFirmware && !["build", "run"].includes(command)) {
+    throw new Error("--base-firmware can only be used with build or run");
   }
-  if (options.firmware && options.board === "universal") {
-    throw new Error("--firmware requires --board v1 or v2");
+  if (options.baseFirmware && options.board === "universal") {
+    throw new Error("--base-firmware requires --board v1 or v2");
   }
   if (options.shared && !["build", "run"].includes(command)) {
     throw new Error("--shared can only be used with build or run");
@@ -165,17 +168,20 @@ function assertOptions(command, options) {
 }
 
 function assertPositionals(command, positionals) {
-  const max = ["build", "flash", "run"].includes(command) ? 1 : 0;
+  const max = ["build", "run", "fs"].includes(command) ? 1 : 0;
   if (positionals.length > max) {
     throw new Error(
       `too many arguments for ${command}: ${positionals.join(" ")}`
     );
   }
   if (
-    command === "flash" &&
-    positionals[0] &&
-    path.extname(positionals[0]).toLowerCase() !== ".hex"
+    command === "build" &&
+    positionals[0] === "clean" &&
+    positionals.length !== 1
   ) {
-    throw new Error("flash input must be a .hex file");
+    throw new Error("build clean does not accept an input file");
+  }
+  if (command === "fs" && positionals[0] !== "ls") {
+    throw new Error("fs requires the ls subcommand");
   }
 }

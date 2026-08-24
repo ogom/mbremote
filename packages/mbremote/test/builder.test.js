@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   buildHex,
+  cleanBuild,
   readSourceFiles,
   resolveFirmware,
   resolveInput,
@@ -25,6 +26,18 @@ test("a single Python file is installed as main.py", async () => {
   const files = await readSourceFiles(file);
   assert.equal(files.length, 1);
   assert.equal(files[0].target, "main.py");
+});
+
+test("cleans the build directory", async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "mbremote-test-"));
+  const buildDirectory = path.join(directory, "build");
+  await fs.mkdir(buildDirectory);
+  await fs.writeFile(path.join(buildDirectory, "microbit.hex"), "hex");
+
+  const result = await cleanBuild({ cwd: directory, log() {} });
+
+  assert.equal(result.buildDirectory, buildDirectory);
+  await assert.rejects(fs.stat(buildDirectory), { code: "ENOENT" });
 });
 
 test("a single project file includes modules from sibling shared", async () => {
@@ -241,8 +254,8 @@ test("detects Python and Ruby entry points", async () => {
   await fs.writeFile(python, "print('hello')\n");
   await fs.writeFile(ruby, 'puts "hello"\n');
 
-  assert.equal(await resolveLanguage(python), "python");
-  assert.equal(await resolveLanguage(ruby), "ruby");
+  assert.equal(await resolveLanguage(python), "micropython");
+  assert.equal(await resolveLanguage(ruby), "picoruby");
 });
 
 test("requires an explicit language for a mixed project", async () => {
@@ -251,8 +264,8 @@ test("requires an explicit language for a mixed project", async () => {
   await fs.writeFile(path.join(directory, "main.rb"), 'puts "hello"\n');
 
   await assert.rejects(resolveLanguage(directory), /contains both main.py and main.rb/);
-  assert.equal(await resolveLanguage(directory, "python"), "python");
-  assert.equal(await resolveLanguage(directory, "ruby"), "ruby");
+  assert.equal(await resolveLanguage(directory, "micropython"), "micropython");
+  assert.equal(await resolveLanguage(directory, "picoruby"), "picoruby");
 });
 
 test("resolves main.rb as the default Ruby input", async () => {
@@ -261,7 +274,7 @@ test("resolves main.rb as the default Ruby input", async () => {
   await fs.writeFile(ruby, 'puts "hello"\n');
 
   assert.equal(
-    await resolveInput(undefined, directory, { language: "ruby" }),
+    await resolveInput(undefined, directory, { language: "picoruby" }),
     ruby
   );
 });

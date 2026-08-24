@@ -3,7 +3,7 @@
 This example uses the micro:bit V2 LED display, A/B buttons, touch logo, and accelerometer from FemtoRuby.
 
 ```sh
-mbremote run examples/picoruby/microbit --language ruby --board v2 --force
+mbremote run examples/picoruby/microbit --language picoruby --board v2 --force
 ```
 
 Button A shows a left arrow, button B shows a right arrow, and touching the logo shows a diamond. Accelerometer XYZ values in milli-g are written to the serial monitor.

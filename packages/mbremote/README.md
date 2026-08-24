@@ -1,182 +1,153 @@
-# mbremote
+# mbremote CLI reference
 
 [日本語](README.ja.md)
 
 [![npm version](https://img.shields.io/npm/v/mbremote.svg)](https://www.npmjs.com/package/mbremote)
 
-Command-line tools for building, flashing, and inspecting BBC micro:bit MicroPython and PicoRuby projects.
+mbremote builds, flashes, and inspects BBC micro:bit MicroPython and PicoRuby
+projects.
 
-## Dependencies
+## Requirements
 
-- **All projects:** Node.js 20 or later (including npm).
-- **MicroPython projects:** the official micro:bit Python Editor V3 V1/V2 firmware, `@microbit/microbit-fs`, and `@microbit/microbit-connection`.
-  - npm installs the JavaScript packages; `mbremote setup` downloads the firmware. No additional build tools are required.
-- **PicoRuby projects (experimental):** Git, Ruby with Rake, GNU Make, CMake, and the Arm GNU Toolchain (`arm-none-eabi-gcc` and `arm-none-eabi-ar`).
-  - The first build also needs network access to clone the pinned PicoRuby and micro:bit V2 sources.
-- **DAPLink USB flashing:** the `usb` npm dependency may require the platform's libusb development package when no prebuilt native binary is available.
+- Node.js 20 or later, including npm.
+- For MicroPython projects, `mbremote setup` downloads the official V1 and V2
+  base firmware. No additional build tools are required.
+- PicoRuby projects also require Git, Ruby with Rake, GNU Make, CMake, and the
+  Arm GNU Toolchain. The first build downloads pinned PicoRuby and micro:bit
+  V2 sources.
+- DAPLink USB support may require the platform's libusb development package
+  when the `usb` npm dependency has no prebuilt binary.
 
-## Installation
+## Install and set up a project
 
 ```sh
 npm install --global mbremote
-```
-
-In each project directory, download the official V1 and V2 firmware before building:
-
-```sh
+cd my-microbit-project
 mbremote setup
 ```
 
-The firmware is saved to `firmware/` in the current directory. An empty
-`config/setting.json` is also created without overwriting an existing file.
+`setup` downloads official base firmware into the project's `firmware/`
+directory and creates `config/setting.json` if it does not already exist.
 
-## Usage
+## Command syntax
 
-### Build a project
+```text
+mbremote build [FILE|DIR] [--firmware HEX] [--language micropython|picoruby] [--board universal|v1|v2] [--base-firmware HEX] [--shared DIR|--no-shared]
+mbremote build clean
+mbremote flash [--firmware HEX] [--port PORT] [--all] [--force] [--mass-storage] [--mount DIR]
+mbremote run [FILE|DIR] [--port PORT|--all] [--firmware HEX] [--language micropython|picoruby] [--board universal|v1|v2] [--base-firmware HEX] [--shared DIR|--no-shared] [--force] [--mass-storage] [--mount DIR] [--no-monitor]
+mbremote setup
+mbremote repl [--port PORT]
+mbremote monitor [--port PORT]
+mbremote fs ls [--port PORT]
+mbremote ports
+```
 
-Build a directory containing `main.py`:
+| Command | Description |
+| --- | --- |
+| `build` | Build a project into a Universal HEX by default. A single `.py` file becomes `main.py` on the board. |
+| `build clean` | Remove the project's generated `build/` directory. |
+| `flash` | Flash a HEX through DAPLink USB or a mounted MICROBIT volume. Without `--firmware`, uses `build/microbit.hex`. |
+| `run` | Build, flash, then open the serial monitor unless `--no-monitor` is set. |
+| `setup` | Create project configuration and download official base firmware. |
+| `repl` | Open the MicroPython REPL. |
+| `monitor` | Open the serial monitor. |
+| `fs ls` | List files on the connected board. |
+| `ports` | List detected micro:bit serial ports. |
+
+Interactive serial commands exit with `Ctrl-]`.
+
+## Options
+
+| Option | Description |
+| --- | --- |
+| `--config FILE` | Read defaults from another configuration file. |
+| `--firmware HEX` | Built HEX path for `build` and `run`; HEX input path for `flash`. Default: `build/microbit.hex`. |
+| `--base-firmware HEX` | Base MicroPython HEX for a board-specific `build` or `run`. Not supported by PicoRuby. |
+| `--board BOARD` | `universal`, `v1`, or `v2`. Default: `universal`. |
+| `--language LANG` | `micropython` or `picoruby`. Default: detect from the input. |
+| `--shared DIR`, `--no-shared` | Select or disable automatically discovered shared MicroPython modules. |
+| `--port PORT` | Select a serial device path. |
+| `--baud RATE` | Serial baud rate. Default: `115200`. |
+| `--timeout SEC` | Device wait timeout in seconds. Default: `10`. |
+| `--mass-storage` | Copy the HEX to a mounted MICROBIT volume. |
+| `--mount DIR` | Set the mounted MICROBIT volume and enable mass-storage flashing. |
+| `--all` | Flash all detected boards; requires at least two. |
+| `--force` | Force a DAPLink USB full flash. |
+| `--no-monitor` | Do not open the serial monitor after `run`. |
+| `-h`, `--help` | Show help. |
+| `-V`, `--version` | Show the installed version. |
+
+Command-line options override configuration. See the
+[configuration reference](../../docs/config.md) for every configuration key,
+its type, default, and applicable commands.
+
+## Build projects
+
+Build a project directory containing `main.py`, or a single Python file:
 
 ```sh
 mbremote build src
-```
-
-To build a single Python file as `main.py` on the micro:bit:
-
-```sh
 mbremote build main.py
 ```
 
-By default, this creates a Universal HEX for both micro:bit V1 and V2 at `build/microbit.hex`.
+MicroPython modules in a project-local or sibling `shared/` directory are
+included automatically. Use `--shared DIR` to select another directory, or
+`--no-shared` to exclude shared modules.
 
-### Build PicoRuby (experimental)
-
-Compile `main.rb` to FemtoRuby (mruby/c) bytecode and link it into micro:bit V2 firmware:
+PicoRuby projects use `.rb` files or `main.rb`, target V2 only, and compile
+their Ruby code into firmware:
 
 ```sh
-mbremote build main.rb --language ruby --board v2
-mbremote run main.rb --language ruby --board v2 --force
+mbremote build main.rb --language picoruby --board v2
+mbremote run main.rb --language picoruby --board v2 --force
 ```
 
-The first build requires Git, CMake, Arm GNU Toolchain, and Ruby. Official sources and intermediate files are cached in `.mbremote-cache/`. The current milestone supports V2, multiple top-level `.rb` files, `puts`, the LED display, A/B buttons, the touch logo, accelerometer XYZ values, sleeping and elapsed time, radio communication, pins/PWM, and NeoPixel output. Ruby files are combined in filename order, with `main.rb` executed last. The REPL is not implemented yet. See the workspace [picoruby/led-rover example](../../examples/picoruby/led-rover/README.md) for a multi-file project and [picoruby/microbit example](../../examples/picoruby/microbit/README.md) for the API list.
+PicoRuby does not provide the REPL. Use `--force` for the initial PicoRuby
+flash and whenever its firmware changes.
 
-### Flash and run
-
-Flash the default `build/microbit.hex` with DAPLink USB:
+## Flash projects
 
 ```sh
 mbremote flash
-```
-
-Build, flash, and open a serial monitor:
-
-```sh
-mbremote run main.py
-```
-
-Use `--no-monitor` to flash without opening a serial monitor, or `--all` to flash every connected micro:bit.
-
-```sh
-mbremote run main.py --no-monitor
-mbremote run main.py --all
-```
-
-### Use custom firmware
-
-Specify a board and custom MicroPython HEX when the project needs a custom firmware build:
-
-```sh
-mbremote build main.py --board v2 --firmware firmware/custom-v2.hex
-mbremote run main.py --board v2 --firmware firmware/custom-v2.hex --force
-```
-
-`--firmware` requires `--board v1` or `--board v2`. Use `--force` the first time a custom firmware is installed or when it changes.
-
-### Include shared modules
-
-Python files in a project-local or sibling `shared/` directory are included automatically.
-To choose another location or include none:
-
-```sh
-mbremote build src --shared ../shared
-mbremote build src --no-shared
-```
-
-For example, `shared/motor/main.py` is installed as the `motor` module.
-
-```text
-examples/
-├── begin/
-│   └── main.py
-└── shared/
-    └── motor/
-        └── main.py
-```
-
-## Configuration
-
-`mbremote` reads project defaults from `config/setting.json`.
-Pass `--config FILE` to use another file; command-line options take precedence.
-
-```json
-{
-  "shared": false,
-  "board": "v2",
-  "language": "python",
-  "firmware": "firmware/custom-v2.hex",
-  "all": true
-}
-```
-
-## Commands
-
-| Command                      | Description                                                  |
-| ---------------------------- | ------------------------------------------------------------ |
-| `mbremote setup`             | Create the config file and download official V1/V2 firmware. |
-| `mbremote build [FILE\|DIR]` | Create `build/microbit.hex`.                                 |
-| `mbremote flash [HEX]`       | Flash a HEX using DAPLink USB or mass storage.               |
-| `mbremote run [FILE\|DIR]`   | Build, flash, and open the serial monitor.                   |
-| `mbremote ports`             | List connected micro:bit serial ports.                       |
-| `mbremote monitor`           | Open a serial monitor.                                       |
-| `mbremote repl`              | Open the MicroPython REPL.                                   |
-| `mbremote ls`                | List files on the connected micro:bit.                       |
-
-Run `mbremote --help` for all options. When multiple boards are connected, select one with `--port /dev/cu.usbmodem...`.
-`monitor` and `repl` exit with `Ctrl-]`.
-
-## Flashing options
-
-```sh
-mbremote flash --force
+mbremote flash --firmware build/other.hex
 mbremote flash --mass-storage
 mbremote flash --mount /Volumes/MICROBIT
-mbremote flash --all --mass-storage
+mbremote run src --all
 ```
 
-`--force` always performs a full flash. Otherwise, mbremote automatically selects partial or full flashing.
-`--all` requires at least two connected micro:bits and does not open a serial monitor.
+`--force` performs a full flash through DAPLink USB. Without it, mbremote
+automatically selects partial or full flashing. `--all` does not open a serial
+monitor after `run`.
+
+## Base firmware
+
+Use `--base-firmware` with a board-specific build when a project requires a
+custom MicroPython base firmware:
+
+```sh
+mbremote run main.py --board v2 \
+  --base-firmware firmware/custom-v2.hex --force
+```
+
+The option requires `--board v1` or `--board v2`. The base firmware is not the
+same as `--firmware`, which names the built HEX or the HEX passed to `flash`.
 
 ## Development
 
-To use the workspace version of this package:
+For repository development, install dependencies from the repository root:
 
 ```sh
 npm install
 npm run setup
 npm link --workspace mbremote
-```
-
-Run the tests with:
-
-```sh
 npm test --workspace mbremote
 ```
 
-Run the optional PicoRuby firmware integration build with:
-
-```sh
-npm run test:picoruby-firmware --workspace mbremote
-```
+Before an npm release, run the checks and follow the
+[release checklist](RELEASING.md).
 
 ## License
 
-[MIT](LICENSE). See [Third-Party Notices](THIRD_PARTY_NOTICES.md) for components distributed under other licenses.
+[MIT](LICENSE). See [Third-Party Notices](THIRD_PARTY_NOTICES.md) for
+components distributed under other licenses.
