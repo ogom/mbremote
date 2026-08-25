@@ -2,7 +2,7 @@
 
 [日本語](README.ja.md)
 
-This is a one-player practice and two-player rock-paper-scissors game that builds magic circles through motion recognition. The PicoRuby implementation follows the game rules, radio synchronization, outcome rules, and NeoPixel effects of the MicroPython `examples/magic-circle` version.
+This is a one-player practice and two-player rock-paper-scissors game that builds magic circles through motion recognition. The PicoRuby implementation follows the game rules, radio synchronization, outcome rules, and NeoPixel effects of the MicroPython `examples/micropython/magic-circle` version.
 
 ## Playing
 
@@ -55,15 +55,20 @@ Each magic-circle NeoPixel effect is implemented in an attribute-specific class 
 | --- | --- |
 | Input | 24 features calculated from XYZ acceleration |
 | Network | 16-unit hidden layer with five outputs: `circle`, `pose`, `side`, `up`, and `down` |
-| Training data | `data/data-samples.json` |
-| Trained model | `data/model.json` |
+| Training data | `data/samples.json` |
+| Trained model | `data/model.json` (generated; not tracked) |
+| Firmware model | `magic_circle_model.c` and `.h` (generated; not tracked; included in the npm package) |
 | Confidence thresholds | 0.80 for `pose`, `side`, and `circle`; 0.90 for `up` and `down` in `scripts/model-config.mjs` |
 
 ML4F converts the learned weights to Cortex-M4F machine code linked into the firmware. `lib/ml_model.rb` contains only label definitions and the native API call.
 
 ### Retraining, generation, and verification
 
-After editing the training data, retrain, regenerate, and verify the firmware model:
+`data/model.json`, `magic_circle_model.c`, and `magic_circle_model.h` are
+generated from tracked source data and ignored by Git. The generated C files
+are still included in the published npm package so installed `mbremote` builds
+do not need the training tools. After cloning the repository or editing the
+training data, retrain, regenerate, and verify the firmware model:
 
 ```sh
 npm run train:ml4f:magic-circle
@@ -72,14 +77,7 @@ npm run generate:ml4f:magic-circle
 npm run verify:ml4f:magic-circle
 ```
 
-If only `data/model.json` changes, regenerate the Ruby metadata and firmware model:
-
-```sh
-node examples/picoruby/magic-circle/scripts/generate-ml-model.mjs
-npm run generate:ml4f:magic-circle
-```
-
-The following command compares the embedded machine-code model with the PicoRuby-local model across 50 training recordings and 40 runtime partial windows. It also reproduces the single-precision feature calculations used on Cortex-M4F, and fails if a probability, selected label, or confidence decision differs.
+The following command compares the embedded machine-code model with the PicoRuby-local model across 49 training recordings and 38 runtime partial windows. It also reproduces the single-precision feature calculations used on Cortex-M4F, and fails if a probability, selected label, or confidence decision differs.
 
 ```sh
 npm run verify:ml4f:magic-circle

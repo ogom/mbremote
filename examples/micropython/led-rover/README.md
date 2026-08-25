@@ -56,5 +56,5 @@ Connect NeoPixel data input to P0. Do not power the NeoPixel or motors directly 
 Connect both boards by USB, then run this command from the repository root:
 
 ```sh
-mbremote run examples/led-rover --all
+mbremote run examples/micropython/led-rover --all
 ```

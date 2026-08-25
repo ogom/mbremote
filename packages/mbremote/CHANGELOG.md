@@ -1,6 +1,20 @@
 # Changelog
 
-## 0.4.0 — 2026-08-24
+All notable changes to this project will be documented in this file.
+
+## 0.5.0 - 2026-08-26
+
+- Define `run` as persistent build, flash, and optional monitoring; add `--monitor` to override a disabled configured monitor.
+- Announce persistent firmware writes and PicoRuby AOT compilation before they begin.
+- Make `ports` list only micro:bit serial paths, one path per line, and report an empty result consistently.
+- Add command-specific help through `mbremote <command> --help`.
+- Add `config show` for effective language, board, firmware, port, and timeout values.
+- Add `exec` for one-shot MicroPython code and `reset` for a soft reset.
+- Add `fs cp`, `fs cat`, and `fs rm`, and use colon-prefixed device paths.
+  Respect the micro:bit's flat MicroPython filesystem: `fs ls` has no path,
+  device files use `:FILENAME`, and directories are unsupported.
+
+## 0.4.0 - 2026-08-24
 
 - Rename source languages to `micropython` and `picoruby`.
 - Standardize configuration keys on `snake_case`, including
@@ -14,7 +28,7 @@
 - Reorganize the README, add configuration references, a release checklist,
   and a related-project link to rpremote.
 
-## 0.3.0 — 2026-08-22
+## 0.3.0 - 2026-08-22
 
 - Add experimental PicoRuby/FemtoRuby support for BBC micro:bit V2.
 - Add Ruby build, flash, and source-file discovery to `mbremote`.

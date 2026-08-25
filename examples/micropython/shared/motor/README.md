@@ -48,4 +48,4 @@ motor.brake()
 
 STBYは3Vへ接続するかモータードライバー側でHighへプルアップし、モーターはmicro:bitから直接給電せず外部電源を使ってmicro:bitとGNDを共有してください。
 
-`examples/shared/motor/main.py`はmbremoteによって実機上の`motor.py`として格納され、`from motor import Motor`で読み込みます。
+`examples/micropython/shared/motor/main.py`はmbremoteによって実機上の`motor.py`として格納され、`from motor import Motor`で読み込みます。

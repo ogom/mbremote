@@ -1,6 +1,6 @@
 # PicoRuby begin
 
-This ports the MicroPython `examples/begin/main.py` program to FemtoRuby on a micro:bit V2. It displays a heart, scrolls `Hello`, then animates ten low-brightness NeoPixels on P0.
+This ports the MicroPython `examples/micropython/begin/main.py` program to FemtoRuby on a micro:bit V2. It displays a heart, scrolls `Hello`, then animates ten low-brightness NeoPixels on P0.
 
 ```sh
 mbremote build examples/picoruby/begin --language picoruby --board v2

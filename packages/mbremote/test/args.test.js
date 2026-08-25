@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { parseArgs } from "../src/args.js";
+import { helpTextForCommand, parseArgs } from "../src/args.js";
 
 test("parses run input and serial options", () => {
   assert.deepEqual(
@@ -51,6 +51,26 @@ test("parses fs ls", () => {
   assert.equal(result.command, "fs");
   assert.deepEqual(result.positionals, ["ls"]);
   assert.equal(result.options.port, "/dev/test");
+});
+
+test("parses exec and reset commands", () => {
+  const exec = parseArgs(["exec", "print(1)", "--timeout", "2"]);
+  const reset = parseArgs(["reset", "--port", "/dev/test"]);
+  assert.deepEqual(exec.positionals, ["print(1)"]);
+  assert.equal(exec.options.timeout, 2000);
+  assert.equal(reset.options.port, "/dev/test");
+});
+
+test("accepts the compatible fs ls root path", () => {
+  const result = parseArgs(["fs", "ls", ":/"]);
+  assert.deepEqual(result.positionals, ["ls", ":/"]);
+});
+
+test("parses fs cp paths", () => {
+  const upload = parseArgs(["fs", "cp", "main.py", ":main.py"]);
+  const download = parseArgs(["fs", "cp", ":data.bin", "data.bin"]);
+  assert.deepEqual(upload.positionals, ["cp", "main.py", ":main.py"]);
+  assert.deepEqual(download.positionals, ["cp", ":data.bin", "data.bin"]);
 });
 
 test("rejects the former top-level ls command", () => {
@@ -117,6 +137,29 @@ test("parses disabled shared modules for build and run", () => {
   assert.equal(run.options.shared, false);
 });
 
+test("monitor options override the configured run default", () => {
+  assert.equal(parseArgs(["run", "main.py"], { monitor: false }).options.monitor, false);
+  assert.equal(
+    parseArgs(["run", "main.py", "--monitor"], { monitor: false }).options.monitor,
+    true
+  );
+  assert.equal(
+    parseArgs(["run", "main.py", "--no-monitor"], { monitor: true }).options.monitor,
+    false
+  );
+});
+
+test("the last monitor option wins", () => {
+  assert.equal(
+    parseArgs(["run", "main.py", "--monitor", "--no-monitor"]).options.monitor,
+    false
+  );
+  assert.equal(
+    parseArgs(["run", "main.py", "--no-monitor", "--monitor"]).options.monitor,
+    true
+  );
+});
+
 test("command-line options override config defaults", () => {
   const result = parseArgs(
     ["build", "examples/hello", "--shared", "cli-shared", "--board", "v1"],
@@ -128,7 +171,7 @@ test("command-line options override config defaults", () => {
 
 test("no-shared overrides the configured shared directory", () => {
   const result = parseArgs(
-    ["build", "examples/magic-circle", "--no-shared"],
+    ["build", "examples/micropython/magic-circle", "--no-shared"],
     { shared: "config-shared" }
   );
   assert.equal(result.options.shared, false);
@@ -142,7 +185,7 @@ test("parses an explicit config file", () => {
 test("parses custom firmware for a board-specific build", () => {
   const result = parseArgs([
     "build",
-    "examples/magic-circle/main.py",
+    "examples/micropython/magic-circle/main.py",
     "--board",
     "v2",
     "--base-firmware",
@@ -170,6 +213,29 @@ test("shows help when no command is given", () => {
   assert.equal(parseArgs([]).options.help, true);
 });
 
+test("provides command-specific help", () => {
+  const run = helpTextForCommand("run");
+  const fs = helpTextForCommand("fs");
+  assert.match(run, /mbremote run \[FILE\|DIR\]/);
+  assert.match(run, /--monitor/);
+  assert.doesNotMatch(run, /fs cp/);
+  assert.match(fs, /mbremote fs cp FILE :FILENAME/);
+  assert.doesNotMatch(fs, /--base-firmware/);
+});
+
+test("provides filesystem subcommand help", () => {
+  const cp = helpTextForCommand("fs", "cp");
+  assert.match(cp, /mbremote fs cp FILE :FILENAME/);
+  assert.doesNotMatch(cp, /mbremote fs rm/);
+});
+
 test("parses the firmware setup command", () => {
   assert.equal(parseArgs(["setup"]).command, "setup");
+});
+
+test("parses config show", () => {
+  const result = parseArgs(["config", "show", "--timeout", "2"]);
+  assert.equal(result.command, "config");
+  assert.deepEqual(result.positionals, ["show"]);
+  assert.equal(result.options.timeout, 2000);
 });

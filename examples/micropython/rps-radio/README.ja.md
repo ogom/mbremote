@@ -44,5 +44,5 @@
 2台をUSB接続し、リポジトリのルートで実行します。
 
 ```sh
-mbremote run examples/rps-radio --all
+mbremote run examples/micropython/rps-radio --all
 ```

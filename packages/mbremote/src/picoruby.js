@@ -35,6 +35,8 @@ export async function buildPicoRubyHex({
   let temporaryDirectory;
   let buildSource = files[0].source;
 
+  log(`will AOT-compile PicoRuby firmware: ${outputPath}`);
+
   try {
     if (files.length > 1) {
       temporaryDirectory = await fs.mkdtemp(

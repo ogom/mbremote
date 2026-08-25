@@ -46,6 +46,8 @@ const COMMAND_OPTIONS = new Map([
   ],
   ["repl", new Set(["port", "baud"])],
   ["monitor", new Set(["port", "baud"])],
+  ["exec", new Set(["port", "baud", "timeout"])],
+  ["reset", new Set(["port", "baud", "timeout"])],
   ["fs", new Set(["port", "baud", "timeout"])],
   ["ports", new Set()],
 ]);

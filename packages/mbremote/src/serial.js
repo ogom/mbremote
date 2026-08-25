@@ -6,6 +6,13 @@ export async function listPorts() {
   return SerialPort.list();
 }
 
+export function microbitPortPaths(ports) {
+  return ports
+    .filter(isLikelyMicrobit)
+    .map((port) => port.path)
+    .sort((left, right) => left.localeCompare(right));
+}
+
 export async function findMicrobitUsbSerial(explicitPort) {
   if (!explicitPort) return undefined;
   return microbitUsbSerialForPort(explicitPort, await listPorts());
@@ -25,6 +32,17 @@ export function microbitUsbSerialForPort(explicitPort, ports) {
     );
   }
   return selected.serialNumber;
+}
+
+export function microbitPortForPath(explicitPort, ports) {
+  const selected = ports.find((port) => sameSerialPort(port.path, explicitPort));
+  if (!selected) {
+    throw new Error(`serial port not found: ${explicitPort}`);
+  }
+  if (!isLikelyMicrobit(selected)) {
+    throw new Error(`serial port is not a micro:bit: ${explicitPort}`);
+  }
+  return explicitPort;
 }
 
 export function isLikelyMicrobit(port) {
@@ -57,10 +75,10 @@ function normalizeSerialPort(port) {
 }
 
 export async function findMicrobitPort(explicitPort) {
-  if (explicitPort) {
-    return explicitPort;
-  }
   const ports = await listPorts();
+  if (explicitPort) {
+    return microbitPortForPath(explicitPort, ports);
+  }
   const matches = ports.filter(isLikelyMicrobit);
   if (matches.length === 1) {
     return matches[0].path;
@@ -78,14 +96,11 @@ export async function findMicrobitPort(explicitPort) {
 }
 
 export async function waitForMicrobitPort({ port, timeout = 10000 } = {}) {
-  if (port) {
-    return port;
-  }
   const deadline = Date.now() + timeout;
   let lastError;
   while (Date.now() < deadline) {
     try {
-      return await findMicrobitPort();
+      return await findMicrobitPort(port);
     } catch (error) {
       lastError = error;
       await delay(250);
@@ -114,8 +129,8 @@ export async function interactiveSerial({
 }) {
   const port = await openPort(path, baudRate);
   log(`connected: ${path} at ${baudRate} baud (Ctrl-] to exit)`);
-  port.on("data", (data) => output.write(data));
-  port.on("error", (error) => log(`serial error: ${error.message}`));
+  const onData = (data) => output.write(data);
+  port.on("data", onData);
   if (interrupt) {
     port.write(Buffer.from([0x03]));
   }
@@ -128,14 +143,28 @@ export async function interactiveSerial({
 
   return new Promise((resolve, reject) => {
     let closing = false;
-    const close = () => {
-      if (closing) return;
-      closing = true;
+    let failure;
+    const cleanup = () => {
       input.off("data", onInput);
+      port.off("data", onData);
+      port.off("error", onError);
+      port.off("close", onClose);
       if (input.isTTY && input.setRawMode) {
         input.setRawMode(wasRaw);
       }
       input.pause();
+    };
+    const finish = (error) => {
+      if (closing) return;
+      closing = true;
+      cleanup();
+      if (error) reject(error);
+      else resolve();
+    };
+    const close = () => {
+      if (closing) return;
+      closing = true;
+      cleanup();
       port.close((error) => (error ? reject(error) : resolve()));
     };
     const onInput = (data) => {
@@ -148,43 +177,135 @@ export async function interactiveSerial({
         port.write(bytes);
       }
     };
-    input.on("data", onInput);
-    port.on("close", () => {
+    const onError = (error) => {
+      log(`serial error: ${error.message}`);
+      failure = error;
       if (!closing) {
         closing = true;
-        input.off("data", onInput);
-        if (input.isTTY && input.setRawMode) input.setRawMode(wasRaw);
-        input.pause();
-        resolve();
+        cleanup();
+        port.close(() => reject(error));
       }
-    });
+    };
+    const onClose = () => {
+      if (!closing) finish(failure);
+    };
+    input.on("data", onInput);
+    port.on("error", onError);
+    port.on("close", onClose);
   });
 }
 
-export async function remoteLs({ path, baudRate = 115200, timeout = 10000 }) {
-  const port = await openPort(path, baudRate);
+export async function remoteLs({
+  path,
+  baudRate = 115200,
+  timeout = 10000,
+  open = openPort,
+}) {
+  return withFriendlyRepl({ path, baudRate, timeout, open }, async (execute) => {
+    const output = await execute('import os\nprint("\\n".join(os.listdir()))');
+    return output.filter(Boolean);
+  });
+}
+
+export async function remoteExec({
+  path,
+  code,
+  baudRate = 115200,
+  timeout = 10000,
+  open = openPort,
+}) {
+  return withFriendlyRepl({ path, baudRate, timeout, open }, async (execute) =>
+    (await execute(code)).join("\n")
+  );
+}
+
+export async function remoteReset({
+  path,
+  baudRate = 115200,
+  timeout = 10000,
+  open = openPort,
+}) {
+  const port = await open(path, baudRate);
+  try {
+    await enterFriendlyReplPrompt(port, timeout);
+    await writePort(port, Buffer.from([0x04]));
+  } finally {
+    await closePort(port);
+  }
+}
+
+export async function remoteCat({
+  path,
+  remotePath,
+  baudRate = 115200,
+  timeout = 10000,
+  open = openPort,
+}) {
+  return withFriendlyRepl({ path, baudRate, timeout, open }, async (execute) => {
+    await execute(`_mb_f=open(${pythonString(remotePath)},"rb")`);
+    const chunks = [];
+    while (true) {
+      const lines = await execute(`_mb_d=_mb_f.read(32)\nprint(list(_mb_d))`);
+      let values;
+      try {
+        values = JSON.parse(lines.join(""));
+      } catch {
+        throw new Error("unexpected file data from the MicroPython REPL");
+      }
+      if (
+        !Array.isArray(values) ||
+        values.some((value) => !Number.isInteger(value) || value < 0 || value > 255)
+      ) {
+        throw new Error("unexpected file data from the MicroPython REPL");
+      }
+      if (values.length === 0) break;
+      chunks.push(Buffer.from(values));
+    }
+    await execute("_mb_f.close()\ndel _mb_f");
+    return Buffer.concat(chunks);
+  });
+}
+
+export async function remoteWriteFile({
+  path,
+  remotePath,
+  data,
+  baudRate = 115200,
+  timeout = 10000,
+  open = openPort,
+}) {
+  return withFriendlyRepl({ path, baudRate, timeout, open }, async (execute) => {
+    await execute(`_mb_f=open(${pythonString(remotePath)},"wb")`);
+    for (let offset = 0; offset < data.length; offset += 32) {
+      const values = [...data.subarray(offset, offset + 32)].join(",");
+      await execute(`_mb_f.write(bytes([${values}]))`);
+    }
+    await execute("_mb_f.close()\ndel _mb_f");
+  });
+}
+
+export async function remoteRm({
+  path,
+  remotePath,
+  baudRate = 115200,
+  timeout = 10000,
+  open = openPort,
+}) {
+  return withFriendlyRepl({ path, baudRate, timeout, open }, (execute) =>
+    execute(`__import__("os").remove(${pythonString(remotePath)})`)
+  );
+}
+
+async function withFriendlyRepl(
+  { path, baudRate = 115200, timeout = 10000, open = openPort },
+  callback
+) {
+  const port = await open(path, baudRate);
   let replReady = false;
   try {
     await enterFriendlyReplPrompt(port, timeout);
     replReady = true;
-    const token = `MBREMOTE_${Date.now().toString(36).toUpperCase()}`;
-    const endToken = `${token}_END`;
-    const command = `print("${token}");print("\\n".join(__import__("os").listdir()));print("${endToken}")\r`;
-    const output = await writeAndCollect(
-      port,
-      command,
-      `\r\n${endToken}\r\n`,
-      timeout
-    );
-    const lines = output.replaceAll("\r", "").split("\n");
-    const start = lines.findIndex((line) => line.trim() === token);
-    const end = lines.findIndex(
-      (line, index) => index > start && line.trim() === endToken
-    );
-    if (start < 0 || end < 0) {
-      throw new Error("unexpected response from the MicroPython REPL");
-    }
-    return lines.slice(start + 1, end).filter(Boolean);
+    return await callback((code) => executeFriendly(port, code, timeout));
   } finally {
     if (replReady && port.isOpen) {
       await writePort(port, Buffer.from([0x04])).catch(() => undefined);
@@ -193,22 +314,88 @@ export async function remoteLs({ path, baudRate = 115200, timeout = 10000 }) {
   }
 }
 
+async function executeFriendly(port, code, timeout) {
+  const token = `_MB${Math.random()
+    .toString(36)
+    .slice(2, 8)
+    .toUpperCase()}`;
+  const endToken = `${token}E`;
+  const command = `print(${pythonString(token)});exec(${pythonString(code)});print(${pythonString(endToken)})\r`;
+  const output = await writeAndCollect(
+    port,
+    command,
+    (response) =>
+      hasMarkerLine(response, endToken) ||
+      hasPromptAfterMarker(response, token),
+    timeout,
+    "command completion"
+  );
+  const lines = output.replaceAll("\r", "").split("\n");
+  const start = lines.findIndex((line) => line.trim() === token);
+  const end = lines.findIndex(
+    (line, index) => index > start && line.trim() === endToken
+  );
+  if (start < 0 || end < 0) {
+    const traceback = lines.findIndex((line) => line.startsWith("Traceback"));
+    if (traceback >= 0) {
+      const details = lines
+        .slice(traceback)
+        .filter((line) => line.trim() !== ">>>")
+        .join("\n")
+        .trim();
+      throw new Error(`remote MicroPython command failed: ${details}`);
+    }
+    throw new Error("unexpected response from the MicroPython REPL");
+  }
+  return lines.slice(start + 1, end);
+}
+
+function pythonString(value) {
+  return JSON.stringify(value);
+}
+
+function hasMarkerLine(output, marker) {
+  return output
+    .replaceAll("\r", "")
+    .split("\n")
+    .some((line) => line.trim() === marker);
+}
+
+function hasPromptAfterMarker(output, marker) {
+  const lines = output.replaceAll("\r", "").split("\n");
+  const markerIndex = lines.findIndex((line) => line.trim() === marker);
+  return (
+    markerIndex >= 0 &&
+    lines.slice(markerIndex + 1).some((line) => line.trim() === ">>>")
+  );
+}
+
 async function enterFriendlyReplPrompt(port, timeout) {
   await writeAndCollect(port, Buffer.from([0x03, 0x03, 0x0d]), ">>> ", timeout);
 }
 
-async function writeAndCollect(port, data, expected, timeout) {
+async function writeAndCollect(
+  port,
+  data,
+  expected,
+  timeout,
+  expectedDescription = expected
+) {
   let output = "";
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       cleanup();
       reject(
-        new Error(`timed out waiting for the MicroPython REPL (${expected})`)
+        new Error(
+          `timed out waiting for the MicroPython REPL (${expectedDescription})`
+        )
       );
     }, timeout);
     const onData = (chunk) => {
       output += chunk.toString("utf8");
-      if (output.includes(expected)) {
+      if (
+        typeof expected === "function" ? expected(output) : output.includes(expected)
+      ) {
         cleanup();
         resolve(output);
       }
