@@ -2,7 +2,7 @@
 
 [日本語](README.ja.md)
 
-Two micro:bit boards communicate by radio: one is a steering-wheel controller and the other is a NeoPixel rover. The PicoRuby implementation follows the controls, motor drive, failsafe, display feedback, and NeoPixel effects of the MicroPython `examples/led-rover` version.
+Two micro:bit boards communicate by radio: one is a steering-wheel controller and the other is a NeoPixel rover. The PicoRuby implementation follows the controls, motor drive, failsafe, display feedback, and NeoPixel effects of the MicroPython `examples/micropython/led-rover` version.
 
 ## Overview
 

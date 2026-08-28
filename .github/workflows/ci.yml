@@ -25,9 +25,11 @@ jobs:
         run: npm ci
       - name: Download official micro:bit firmware
         run: npm run setup
-      - name: Run tests
-        run: npm test
-      - name: Verify the magic-circle ML4F model
-        run: npm run verify:ml4f:magic-circle
-      - name: Build PicoRuby firmware
-        run: npm --workspace mbremote run test:picoruby-firmware
+      - name: Generate and verify the magic-circle ML4F model
+        run: |
+          npm run train:ml4f:magic-circle
+          node examples/picoruby/magic-circle/scripts/generate-ml-model.mjs
+          npm run generate:ml4f:magic-circle
+          npm run verify:ml4f:magic-circle
+      - name: Run release checks
+        run: npm --workspace mbremote run release:check

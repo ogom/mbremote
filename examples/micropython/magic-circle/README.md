@@ -41,7 +41,7 @@ Build magic circles with CreateAI motion recognition in this rock-paper-scissors
 
 ### Magic-circle motions
 
-`data-samples.json` contains 50 CreateAI-recorded acceleration samples for each of `pose`, `side`, `circle`, `up`, and `down`. The model classifies roughly one second of motion (about 50 samples at 20 ms intervals), so make each motion large and deliberate over about one second.
+`data/samples.json` contains 49 CreateAI-recorded acceleration samples for `pose`, `side`, `circle`, `up`, and `down`. The model classifies roughly one second of motion (about 50 samples at 20 ms intervals), so make each motion large and deliberate over about one second.
 
 1. `down`: Begin with the `down` motion to light the center.
 2. `pose`: Hold the board vertically, swing it forward until horizontal, then stop.
@@ -69,44 +69,54 @@ Wait for the display image to change before making the next motion. If a motion 
 
 Run commands from the repository root.
 
-### Generate custom firmware
+### Train the motion model
 
-Run this before the first flash and after changing `ml_model.py` or `rgb_led.py`:
+After changing `data/samples.json`, regenerate the learned weights in
+`ml_model.py`:
+
+```sh
+npm run train:micropython:magic-circle
+```
+
+### Generate custom base firmware
+
+Run this before the first flash and after training `ml_model.py` or changing
+`rgb_led.py`:
 
 ```sh
 npm run build:firmware:magic-circle
 ```
 
-The model from `data-samples.json` and `rgb_led.py` are frozen into the custom firmware, so they do not consume the 20 KB file system.
+The model from `data/samples.json` and `rgb_led.py` are frozen into the custom base firmware, so they do not consume the 20 KB file system.
 
 ### Debug with one micro:bit
 
 Connect one micro:bit and run without `--all` to open the serial monitor after flashing. It displays debug logs for state changes, motion recognition and confidence, magic-circle completion time, radio traffic, and game results.
 
 ```sh
-mbremote run examples/magic-circle/main.py --no-shared --board v2 --base-firmware firmware/microbit-micropython-v2-magic-circle.hex
+mbremote run examples/micropython/magic-circle/main.py --no-shared --board v2 --base-firmware firmware/microbit-micropython-v2-magic-circle.hex
 ```
 
 Exit the monitor with `Ctrl-]`. To disable logging, set `DEBUG` to `False` in [main.py](main.py).
 
 ### Flash the program
 
-For the first installation, use `--force` to perform a full flash of the custom firmware and `main.py` to two boards.
+For the first installation, use `--force` to perform a full flash of the custom base firmware and `main.py` to two boards.
 
 ```sh
-mbremote run examples/magic-circle/main.py --config config/setting.json --force
+mbremote run examples/micropython/magic-circle/main.py --config config/setting.json --force
 ```
 
 For later flashes without firmware changes, omit `--force` and flash only `main.py`.
 
 ```sh
-mbremote run examples/magic-circle/main.py --config config/setting.json
+mbremote run examples/micropython/magic-circle/main.py --config config/setting.json
 ```
 
 Without a configuration file, provide the options directly:
 
 ```sh
-mbremote run examples/magic-circle/main.py --all --no-shared --board v2 --base-firmware firmware/microbit-micropython-v2-magic-circle.hex --force
+mbremote run examples/micropython/magic-circle/main.py --all --no-shared --board v2 --base-firmware firmware/microbit-micropython-v2-magic-circle.hex --force
 ```
 
 ### Configure `setting.json`

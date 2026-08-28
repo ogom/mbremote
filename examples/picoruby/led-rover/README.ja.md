@@ -3,7 +3,7 @@
 [English](README.md)
 
 2台のmicro:bitを無線接続し、1台をハンドル型コントローラー、もう1台をLED付きローバーとして使います。
-MicroPython版`examples/led-rover`の操作、モーター制御、安全停止、画面表示、NeoPixel演出を参照し、PicoRuby版として実装しています。
+MicroPython版`examples/micropython/led-rover`の操作、モーター制御、安全停止、画面表示、NeoPixel演出を参照し、PicoRuby版として実装しています。
 
 ## 概要
 

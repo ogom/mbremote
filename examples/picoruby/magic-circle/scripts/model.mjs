@@ -44,8 +44,8 @@ export function validateModel(model) {
   return model;
 }
 
-export async function loadModel() {
-  return validateModel(JSON.parse(await fs.readFile(MODEL_PATH, "utf8")));
+export async function loadModel(modelPath = MODEL_PATH) {
+  return validateModel(JSON.parse(await fs.readFile(modelPath, "utf8")));
 }
 
 export { MODEL_PATH };

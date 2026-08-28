@@ -44,5 +44,5 @@ Two players use micro:bits for radio rock-paper-scissors. Flash the same [main.p
 Connect both boards by USB, then run this command from the repository root:
 
 ```sh
-mbremote run examples/rps-radio --all
+mbremote run examples/micropython/rps-radio --all
 ```

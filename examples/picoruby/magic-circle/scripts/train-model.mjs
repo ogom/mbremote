@@ -4,14 +4,15 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import * as tf from "@tensorflow/tfjs";
 
-import { loadModel, validateModel, MODEL_PATH } from "./model.mjs";
+import { validateModel, MODEL_PATH } from "./model.mjs";
+import { createModelMetadata } from "./model-config.mjs";
 import { extractFeatures } from "./verify-ml4f-model.mjs";
 
 const PROJECT_DIRECTORY = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   ".."
 );
-const DATA_PATH = path.join(PROJECT_DIRECTORY, "data", "data-samples.json");
+const DATA_PATH = path.join(PROJECT_DIRECTORY, "data", "samples.json");
 const EPOCHS = 800;
 const LEARNING_RATE = 0.02;
 const SEED = 20260822;
@@ -89,10 +90,8 @@ function stringValues(values) {
 }
 
 export async function trainModel({ outputPath = MODEL_PATH } = {}) {
-  const [model, source] = await Promise.all([
-    loadModel(),
-    fs.readFile(DATA_PATH, "utf8")
-  ]);
+  const source = await fs.readFile(DATA_PATH, "utf8");
+  const model = createModelMetadata();
   const trainingExamples = examples(JSON.parse(source), model);
   const inputSize = Number(model.inputSize);
   const hiddenSize = Number(model.hiddenSize);

@@ -3,7 +3,7 @@
 [English](README.md)
 
 動作認識で魔法陣を構築する、1人練習と2人対戦のじゃんけんです。
-MicroPython版`examples/magic-circle`のゲーム仕様、無線同期、勝敗判定、NeoPixel演出を参照し、PicoRuby版として実装しています。
+MicroPython版`examples/micropython/magic-circle`のゲーム仕様、無線同期、勝敗判定、NeoPixel演出を参照し、PicoRuby版として実装しています。
 
 ## 遊び方
 
@@ -59,8 +59,9 @@ MicroPython版`examples/magic-circle`のゲーム仕様、無線同期、勝敗�
 | -------------- | -------------------------------------------------------------------------------- |
 | 入力           | 加速度XYZから計算する24個の特徴量                                                |
 | ネットワーク   | 隠れ層16ユニット、出力5種類（`circle`・`pose`・`side`・`up`・`down`）            |
-| 学習データ     | `data/data-samples.json`                                                         |
-| 学習済みモデル | `data/model.json`                                                                |
+| 学習データ     | `data/samples.json`                                                              |
+| 学習済みモデル | `data/model.json`（生成物、Git管理しない）                                      |
+| ファームウェア用モデル | `magic_circle_model.c`・`.h`（生成物、Git管理しない。npmパッケージには同梱） |
 | 信頼度しきい値 | `pose`・`side`・`circle`: 0.80、`up`・`down`: 0.90（`scripts/model-config.mjs`） |
 
 学習済みの重みはML4FでCortex-M4F向け機械語に変換し、ファームウェアへ組み込みます。
@@ -68,7 +69,7 @@ MicroPython版`examples/magic-circle`のゲーム仕様、無線同期、勝敗�
 
 ### 再学習・生成・検証
 
-学習データを変更した後は、次のコマンドで再学習、生成、検証を行います。
+`data/model.json`、`magic_circle_model.c`、`magic_circle_model.h`はGit管理するソースデータから生成し、Gitでは無視します。生成したCファイルはnpmパッケージには同梱するため、インストール済みの`mbremote`で学習ツールは不要です。リポジトリをクローンした後、または学習データを変更した後は、次のコマンドで再学習、生成、検証を行います。
 
 ```sh
 npm run train:ml4f:magic-circle
@@ -77,14 +78,7 @@ npm run generate:ml4f:magic-circle
 npm run verify:ml4f:magic-circle
 ```
 
-`data/model.json`だけを変更した場合は、Rubyメタデータとファームウェアモデルを再生成します。
-
-```sh
-node examples/picoruby/magic-circle/scripts/generate-ml-model.mjs
-npm run generate:ml4f:magic-circle
-```
-
-組み込み用の機械語モデルとPicoRuby専用モデルは、学習データ50件と実行時の部分窓40件で比較します。
+組み込み用の機械語モデルとPicoRuby専用モデルは、学習データ49件と実行時の部分窓38件で比較します。
 Cortex-M4Fで使う単精度の特徴量計算も再現し、5クラスの出力確率、選択ラベル、信頼度判定が一致しない場合は失敗します。
 
 ```sh

@@ -17,6 +17,7 @@
     "flash": "node packages/mbremote/bin/mbremote.js flash",
     "run": "node packages/mbremote/bin/mbremote.js run",
     "test": "npm --workspace mbremote test",
+    "train:micropython:magic-circle": "node examples/micropython/magic-circle/scripts/train-model.mjs",
     "train:ml4f:magic-circle": "node examples/picoruby/magic-circle/scripts/train-model.mjs",
     "verify:ml4f:magic-circle": "node examples/picoruby/magic-circle/scripts/verify-ml4f-model.mjs",
     "generate:ml4f:magic-circle": "node examples/picoruby/magic-circle/scripts/generate-ml4f-model.mjs"

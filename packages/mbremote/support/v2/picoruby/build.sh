@@ -33,6 +33,35 @@ if [ ! -f "$input" ]; then
   exit 2
 fi
 
+ensure_magic_circle_model() {
+  if [ -f "$support_dir/codal_app/magic_circle_model.c" ] && \
+     [ -f "$support_dir/codal_app/magic_circle_model.h" ]; then
+    return
+  fi
+
+  repository_dir=$(CDPATH= cd -- "$support_dir/../../../../.." && pwd)
+  training_script="$repository_dir/examples/picoruby/magic-circle/scripts/train-model.mjs"
+  generator_script="$repository_dir/examples/picoruby/magic-circle/scripts/generate-ml4f-model.mjs"
+  if [ ! -f "$training_script" ] || [ ! -f "$generator_script" ]; then
+    echo "missing generated magic-circle ML4F model files" >&2
+    echo "reinstall mbremote, or generate them from the mbremote repository" >&2
+    exit 2
+  fi
+  if ! command -v npm >/dev/null 2>&1; then
+    echo "npm is required to generate the magic-circle ML4F model" >&2
+    exit 2
+  fi
+
+  echo "generating magic-circle ML4F model from training data" >&2
+  (
+    cd "$repository_dir"
+    npm run train:ml4f:magic-circle
+    npm run generate:ml4f:magic-circle
+  )
+}
+
+ensure_magic_circle_model
+
 mkdir -p "$work_dir"
 lock_dir="$work_dir/build.lock"
 if ! mkdir "$lock_dir" 2>/dev/null; then

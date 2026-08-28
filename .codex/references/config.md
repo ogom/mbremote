@@ -1,11 +1,8 @@
 # mbremote configuration
 
-mbremote reads `config/setting.json` from the project root. Use `--config FILE`
-to select another file. Configuration keys use `snake_case`.
+mbremote reads `config/setting.json` from the project root. Use `--config FILE` to select another file. Configuration keys use `snake_case`.
 
-Command-line values override configuration. A valid key that does not apply to
-the selected command is ignored; an unknown key, invalid JSON, or wrong type
-is an error.
+Command-line values override configuration. A valid key that does not apply to the selected command is ignored; an unknown key, invalid JSON, or wrong type is an error.
 
 ```json
 {
@@ -26,18 +23,15 @@ is an error.
 | `firmware` | non-empty string | `build/microbit.hex` | `build`, `run`, `flash` | `--firmware` |
 | `base_firmware` | non-empty string | official base firmware | `build`, `run` | `--base-firmware` |
 | `shared` | non-empty string or `false` | automatic `shared/` discovery | `build`, `run` | `--shared`, `--no-shared` |
-| `port` | non-empty string | auto-select | `flash`, `run`, `repl`, `monitor`, `fs ls` | `--port` |
+| `port` | non-empty string | auto-select | `flash`, `run`, `repl`, `monitor`, `exec`, `reset`, `fs cp/cat/ls/rm` | `--port` |
 | `mount` | non-empty string | auto-detect | `flash`, `run` | `--mount` |
-| `baud` | positive integer | `115200` | `run`, `repl`, `monitor`, `fs ls` | `--baud` |
-| `timeout` | positive integer seconds | `10` | `run`, `fs ls` | `--timeout` |
-| `monitor` | boolean | `true` | `run` | `--no-monitor` |
+| `baud` | positive integer | `115200` | `run`, `repl`, `monitor`, `exec`, `reset`, `fs cp/cat/ls/rm` | `--baud` |
+| `timeout` | positive integer seconds | `10` | `run`, `exec`, `reset`, `fs cp/cat/ls/rm` | `--timeout`; post-flash port wait for `run`, REPL response wait for `exec`, `reset`, and `fs` |
+| `monitor` | boolean | `true` | `run` | `--monitor`, `--no-monitor` |
 | `mass_storage` | boolean | `false` | `flash`, `run` | `--mass-storage` |
 | `all` | boolean | `false` | `flash`, `run` | `--all` |
 | `force` | boolean | `false` | `flash`, `run` | `--force` |
 
-`firmware` names the generated HEX for `build` and `run`, but the HEX input
-for `flash`. `base_firmware` is a different setting: it selects a custom
-MicroPython base HEX and requires a V1 or V2 board. It cannot be used for
-PicoRuby.
+`firmware` names the generated HEX for `build` and `run`, but the HEX input for `flash`. `base_firmware` is a different setting: it selects a custom MicroPython base HEX and requires a V1 or V2 board. It cannot be used for PicoRuby.
 
 Keep machine-specific `port` and `mount` values out of shared configuration.

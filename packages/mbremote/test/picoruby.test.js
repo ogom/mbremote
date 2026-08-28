@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import test from "node:test";
+import { after, test } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import {
@@ -31,6 +31,29 @@ import {
   extractFeatures,
   verifyML4FModel
 } from "../../../examples/picoruby/magic-circle/scripts/verify-ml4f-model.mjs";
+
+let trainedModelDirectory;
+let trainedModelPromise;
+
+async function trainedModel() {
+  if (!trainedModelPromise) {
+    trainedModelPromise = (async () => {
+      trainedModelDirectory = await fs.mkdtemp(
+        path.join(os.tmpdir(), "mbremote-model-")
+      );
+      const outputPath = path.join(trainedModelDirectory, "model.json");
+      await trainModel({ outputPath });
+      return loadModel(outputPath);
+    })();
+  }
+  return trainedModelPromise;
+}
+
+after(async () => {
+  if (trainedModelDirectory) {
+    await fs.rm(trainedModelDirectory, { recursive: true, force: true });
+  }
+});
 
 test("keeps the PicoRuby firmware build isolated and reproducible", async () => {
   const buildScriptUrl = new URL(
@@ -76,6 +99,9 @@ test("keeps the PicoRuby firmware build isolated and reproducible", async () => 
     buildScript,
     /git -C "\$codal_source_dir" (?:apply|checkout)/
   );
+  assert.match(buildScript, /ensure_magic_circle_model\(\)/);
+  assert.match(buildScript, /npm run train:ml4f:magic-circle/);
+  assert.match(buildScript, /npm run generate:ml4f:magic-circle/);
   assert.doesNotMatch(buildScript, /MBREMOTE_PICORUBY_OUTPUT_DIR/);
   assert.match(patch, /SPDX-License-Identifier: MIT/);
   assert.match(notices, /MicroPython V2 and CODAL — MIT License/);
@@ -397,7 +423,7 @@ test("ships synchronized acceleration samples and PicoRuby magic-circle motion d
 
 test("generates the PicoRuby neural network from its local model", async () => {
   const [model, generated] = await Promise.all([
-    loadModel(),
+    trainedModel(),
     fs.readFile(
       new URL(
         "../../../examples/picoruby/magic-circle/lib/ml_model.rb",
@@ -423,7 +449,7 @@ test("retrain the PicoRuby model from local recordings", async () => {
     const report = await trainModel({ outputPath });
     const trained = JSON.parse(await fs.readFile(outputPath, "utf8"));
 
-    assert.equal(report.examples, 50);
+    assert.equal(report.examples, 49);
     assert.ok(report.accuracy >= 0.99);
     assert.deepEqual(trained.labels, ["circle", "pose", "side", "up", "down"]);
     assert.equal(trained.inputWeights.length, 24 * 16);
@@ -434,11 +460,11 @@ test("retrain the PicoRuby model from local recordings", async () => {
 });
 
 test("recognizes pose training data with the ML model without false positives", async () => {
-  const model = await loadModel();
+  const model = await trainedModel();
   const compiled = compileML4FModel(model);
   const actions = JSON.parse(await fs.readFile(
     new URL(
-      "../../../examples/picoruby/magic-circle/data/data-samples.json",
+      "../../../examples/picoruby/magic-circle/data/samples.json",
       import.meta.url
     ),
     "utf8"
@@ -479,38 +505,22 @@ test("recognizes pose training data with the ML model without false positives", 
   assert.equal(falsePositives.length, 0);
 });
 
-test("generates reproducible ML4F firmware artifacts", async () => {
-  const [model, checkedSource, checkedHeader] = await Promise.all([
-    loadModel(),
-    fs.readFile(
-      new URL(
-        "../support/v2/picoruby/codal_app/magic_circle_model.c",
-        import.meta.url
-      ),
-      "utf8"
-    ),
-    fs.readFile(
-      new URL(
-        "../support/v2/picoruby/codal_app/magic_circle_model.h",
-        import.meta.url
-      ),
-      "utf8"
-    )
-  ]);
+test("generates reproducible ML4F firmware artifacts from training data", async () => {
+  const model = await trainedModel();
   const artifacts = generateML4FArtifacts(model);
 
-  assert.equal(checkedSource, artifacts.source);
-  assert.equal(checkedHeader, artifacts.header);
+  assert.match(artifacts.source, /mbremote_magic_circle_model/);
+  assert.match(artifacts.header, /MBREMOTE_MAGIC_CIRCLE_MODEL_WORDS 744/);
   assert.equal(artifacts.compiled.machineCode.length, 2976);
   assert.equal(artifacts.compiled.stats.total.arenaBytes, 168);
 });
 
 test("matches the ML4F machine model against every magic-circle recording", async () => {
-  const report = await verifyML4FModel();
+  const report = await verifyML4FModel({ model: await trainedModel() });
 
-  assert.equal(report.recordings, 50);
-  assert.equal(report.evaluationCases, 90);
-  assert.equal(report.probabilityValues, 450);
+  assert.equal(report.recordings, 49);
+  assert.equal(report.evaluationCases, 87);
+  assert.equal(report.probabilityValues, 435);
   assert.equal(report.decisionMismatches, 0);
   assert.equal(report.float32DecisionMismatches, 0);
   assert.ok(report.maxProbabilityDelta <= report.probabilityTolerance);

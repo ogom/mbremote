@@ -1,6 +1,6 @@
 {
   "name": "mbremote",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Command-line tools for building and flashing BBC micro:bit MicroPython and PicoRuby projects",
   "author": "ogom",
   "repository": {
@@ -30,7 +30,8 @@
     "run": "node bin/mbremote.js run",
     "test": "node --test test/*.test.js",
     "test:picoruby-firmware": "node bin/mbremote.js build ../../examples/picoruby/begin --language picoruby --board v2 --firmware build/picoruby-smoke.hex",
-    "prepublishOnly": "npm test && npm run test:picoruby-firmware"
+    "release:check": "node tasks/release-check.js",
+    "prepublishOnly": "npm run release:check"
   },
   "keywords": [
     "microbit",

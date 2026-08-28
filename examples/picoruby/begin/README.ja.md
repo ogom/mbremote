@@ -1,6 +1,6 @@
 # PicoRuby begin
 
-MicroPython版の `examples/begin/main.py` をmicro:bit V2上のFemtoRubyへ移植したサンプルです。ハートを表示し、`Hello` をスクロールした後、P0に接続した10個の低輝度NeoPixelを虹色にアニメーションします。
+MicroPython版の `examples/micropython/begin/main.py` をmicro:bit V2上のFemtoRubyへ移植したサンプルです。ハートを表示し、`Hello` をスクロールした後、P0に接続した10個の低輝度NeoPixelを虹色にアニメーションします。
 
 ```sh
 mbremote build examples/picoruby/begin --language picoruby --board v2

@@ -12,7 +12,7 @@ const PROJECT_DIRECTORY = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   ".."
 );
-const DATA_PATH = path.join(PROJECT_DIRECTORY, "data", "data-samples.json");
+const DATA_PATH = path.join(PROJECT_DIRECTORY, "data", "samples.json");
 const PROBABILITY_TOLERANCE = 0.0001;
 
 tf.enableProdMode();
@@ -341,10 +341,11 @@ function evaluationCases(actions) {
 }
 
 export async function verifyML4FModel({
+  model: suppliedModel,
   probabilityTolerance = PROBABILITY_TOLERANCE
 } = {}) {
   const [model, dataSource] = await Promise.all([
-    loadModel(),
+    suppliedModel || loadModel(),
     fs.readFile(DATA_PATH, "utf8")
   ]);
   if (REQUIRED_CONFIDENCE.length !== Number(model.outputSize)) {

@@ -56,5 +56,5 @@ NeoPixelのデータ入力はP0へ接続します。NeoPixelとモーターはmi
 2台をUSB接続し、リポジトリのルートで実行します。
 
 ```sh
-mbremote run examples/led-rover --all
+mbremote run examples/micropython/led-rover --all
 ```

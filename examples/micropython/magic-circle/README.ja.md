@@ -41,7 +41,7 @@ CreateAIの動作認識で魔法陣を構築する、1人練習と2人対戦の�
 
 ### 魔法陣の動き
 
-`data-samples.json`はCreateAIで記録してダウンロードした、`pose`・`side`・`circle`・`up`・`down`の5種類50件の加速度データです。モデルは約1秒間（20ms間隔×約50サンプル）の動きを判定するため、各動作を約1秒かけて大きく行います。
+`data/samples.json`はCreateAIで記録してダウンロードした、`pose`・`side`・`circle`・`up`・`down`の5種類49件の加速度データです。モデルは約1秒間（20ms間隔×約50サンプル）の動きを判定するため、各動作を約1秒かけて大きく行います。
 
 1. `down`: 最初に`down`の動きを行い、中心を点灯します。
 2. `pose`: 垂直に構え、水平になるように前へ振り出して止めます。
@@ -69,44 +69,52 @@ CreateAIの動作認識で魔法陣を構築する、1人練習と2人対戦の�
 
 コマンドはリポジトリのルートで実行します。
 
-### カスタムファームウェアの生成
+### 動作モデルの学習
 
-初回と`ml_model.py`または`rgb_led.py`を変更したときに実行します。
+`data/samples.json`を変更した後は、学習済みの重みを`ml_model.py`へ反映します。
+
+```sh
+npm run train:micropython:magic-circle
+```
+
+### カスタムベースファームウェアの生成
+
+初回、`ml_model.py`を学習し直した後、または`rgb_led.py`を変更したときに実行します。
 
 ```sh
 npm run build:firmware:magic-circle
 ```
 
-`data-samples.json`の学習モデルと`rgb_led.py`はカスタムファームウェアに組み込まれるため、20KBのファイル領域を消費しません。
+`data/samples.json`の学習モデルと`rgb_led.py`はカスタムベースファームウェアに組み込まれるため、20KBのファイル領域を消費しません。
 
 ### 1台でデバッグ
 
 micro:bitを1台だけ接続して`--all`を付けずに実行すると、書き込み後にシリアルモニターが開きます。状態遷移、動作認識と信頼度、魔法陣の完成時間、通信、勝敗のデバッグログを表示します。
 
 ```sh
-mbremote run examples/magic-circle/main.py --no-shared --board v2 --base-firmware firmware/microbit-micropython-v2-magic-circle.hex
+mbremote run examples/micropython/magic-circle/main.py --no-shared --board v2 --base-firmware firmware/microbit-micropython-v2-magic-circle.hex
 ```
 
 モニターは`Ctrl-]`で終了します。ログを止める場合は[main.py](main.py)の`DEBUG`を`False`に変更します。
 
 ### プログラムの転送
 
-初回は`--force`を付け、カスタムファームウェアと`main.py`を2台へ完全書き込みします。
+初回は`--force`を付け、カスタムベースファームウェアと`main.py`を2台へ完全書き込みします。
 
 ```sh
-mbremote run examples/magic-circle/main.py --config config/setting.json --force
+mbremote run examples/micropython/magic-circle/main.py --config config/setting.json --force
 ```
 
 2回目以降は`--force`を外し、`main.py`を2台へ書き込みます。
 
 ```sh
-mbremote run examples/magic-circle/main.py --config config/setting.json
+mbremote run examples/micropython/magic-circle/main.py --config config/setting.json
 ```
 
 設定ファイルを使わない場合は、オプションをワンライナーで指定します。
 
 ```sh
-mbremote run examples/magic-circle/main.py --all --no-shared --board v2 --base-firmware firmware/microbit-micropython-v2-magic-circle.hex --force
+mbremote run examples/micropython/magic-circle/main.py --all --no-shared --board v2 --base-firmware firmware/microbit-micropython-v2-magic-circle.hex --force
 ```
 
 ### `setting.json`の設定

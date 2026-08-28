@@ -42,3 +42,8 @@ pnpm-debug.log*
 # Local scratch files
 /tmp/
 /.mbremote-cache/
+
+# Generated from magic-circle training samples
+/examples/picoruby/magic-circle/data/model.json
+/packages/mbremote/support/v2/picoruby/codal_app/magic_circle_model.c
+/packages/mbremote/support/v2/picoruby/codal_app/magic_circle_model.h

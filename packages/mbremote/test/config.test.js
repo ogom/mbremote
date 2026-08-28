@@ -64,6 +64,12 @@ test("loads setting.json options used by the command", async () => {
   assert.deepEqual(await loadConfigOptions("fs", { cwd }), {
     port: "/dev/test",
   });
+  assert.deepEqual(await loadConfigOptions("exec", { cwd }), {
+    port: "/dev/test",
+  });
+  assert.deepEqual(await loadConfigOptions("reset", { cwd }), {
+    port: "/dev/test",
+  });
 });
 
 test("loads false for shared to disable shared modules", async () => {
